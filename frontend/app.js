@@ -165,10 +165,11 @@ function applyState(msg) {
 function updateStatBars() {
   const f = kubeling.fullness;
   const m = kubeling.mood;
-  el.fullnessBar.style.width = `${f}%`;
+  // Fill is abs-positioned inside a bordered track; width relative to inner area
+  el.fullnessBar.style.width = `calc(${f}% - ${(f / 100) * 8}px)`;
   el.fullnessBar.classList.toggle('low', f < 25);
   el.fullnessVal.textContent = Math.round(f);
-  el.moodBar.style.width = `${m}%`;
+  el.moodBar.style.width = `calc(${m}% - ${(m / 100) * 8}px)`;
   el.moodBar.classList.toggle('low', m < 25);
   el.moodVal.textContent = Math.round(m);
   el.viewport.classList.toggle('warning', f < 25 || m < 25);
