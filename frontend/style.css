@@ -78,7 +78,7 @@ input[type="text"] {
   transition: border-color 0.2s;
 }
 input[type="text"]:focus { border-color: var(--main); }
-label { font-size: 16px; color: var(--text-dim); margin-bottom: 4px; display: block; }
+label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: block; }
 
 /* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
 
@@ -93,6 +93,13 @@ label { font-size: 16px; color: var(--text-dim); margin-bottom: 4px; display: bl
   opacity: 0.35;
 }
 
+.onboard-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
 #screen-onboarding .title {
   font-size: 40px;
   color: var(--highlight);
@@ -102,7 +109,7 @@ label { font-size: 16px; color: var(--text-dim); margin-bottom: 4px; display: bl
   transition: color 0.4s;
 }
 #screen-onboarding .subtitle {
-  font-size: 16px;
+  font-size: 24px;
   color: var(--text-dim);
   text-align: center;
 }
