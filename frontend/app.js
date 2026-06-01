@@ -1,5 +1,19 @@
 const WS_URL = `ws://${window.location.host}/ws`;
 
+// ── Palettes ───────────────────────────────────────────────────────────────
+// 8 muted hues. JS sets --hue and --sprite-filter on :root.
+// Sepia baseline is ~35deg, so sprite-filter rotates (hue - 35)deg.
+const PALETTES = [
+  { key: 'slate',    hue: 215, label: 'SLATE'    },
+  { key: 'sage',     hue: 148, label: 'SAGE'     },
+  { key: 'lavender', hue: 262, label: 'LAVENDER' },
+  { key: 'teal',     hue: 175, label: 'TEAL'     },
+  { key: 'mauve',    hue: 320, label: 'MAUVE'    },
+  { key: 'amber',    hue:  38, label: 'AMBER'    },
+  { key: 'terra',    hue:  15, label: 'TERRA'    },
+  { key: 'mist',     hue: 195, label: 'MIST'     },
+];
+
 const SPRITES = {
   idle:     'sprites/idle.gif',
   eating:   'sprites/eat.gif',
@@ -10,22 +24,19 @@ const SPRITES = {
 
 // ── State ──────────────────────────────────────────────────────────────────
 let ws = null;
-let kubeling = { name: '', color: '#a8ff3e', fullness: 100, mood: 100, sleeping: false, alive: true };
+let selectedHue = PALETTES[0].hue;
+let kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, sleeping: false, alive: true };
 let animTimeout = null;
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const screens = {
   onboarding: document.getElementById('screen-onboarding'),
-  spawn:      document.getElementById('screen-spawn'),
   game:       document.getElementById('screen-game'),
   death:      document.getElementById('screen-death'),
 };
-
 const el = {
+  bgVideo:         document.getElementById('bg-video'),
   nameInput:       document.getElementById('input-name'),
-  colorInput:      document.getElementById('input-color'),
-  colorPreview:    document.getElementById('color-preview'),
-  spawnBtn:        document.getElementById('btn-spawn'),
   feedBtn:         document.getElementById('btn-feed'),
   viewport:        document.getElementById('kubeling-viewport'),
   sprite:          document.getElementById('kubeling-sprite'),
@@ -44,22 +55,39 @@ const el = {
   deathPeakMood:   document.getElementById('death-peak-mood'),
 };
 
+// ── Palette ────────────────────────────────────────────────────────────────
+function applyPalette(hue) {
+  selectedHue = hue;
+  const root = document.documentElement;
+  root.style.setProperty('--hue', hue);
+  // sepia() outputs ~hue 35; rotate to target hue
+  const rotate = hue - 35;
+  root.style.setProperty('--sprite-filter', `sepia(1) saturate(1.4) hue-rotate(${rotate}deg) brightness(0.95)`);
+}
+
+function buildSwatches() {
+  const row = document.getElementById('swatch-row');
+  PALETTES.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'swatch' + (i === 0 ? ' selected' : '');
+    btn.title = p.label;
+    btn.style.background = `hsl(${p.hue}, 28%, 50%)`;
+    btn.dataset.key = p.key;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      btn.classList.add('selected');
+      kubeling.color = p.key;
+      applyPalette(p.hue);
+    });
+    row.appendChild(btn);
+  });
+}
+
 // ── Screen transitions ─────────────────────────────────────────────────────
 function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove('active'));
-  screens[name].classList.add('active');
-}
-
-// ── Color picker live preview ──────────────────────────────────────────────
-el.colorInput.addEventListener('input', () => {
-  el.colorPreview.style.background = el.colorInput.value;
-  kubeling.color = el.colorInput.value;
-  applyColor(el.colorInput.value);
-});
-
-function applyColor(hex) {
-  el.spritePlaceholder.style.background = hex;
-  el.spriteImg.style.filter = `drop-shadow(0 0 6px ${hex})`;
+  if (screens[name]) screens[name].classList.add('active');
 }
 
 // ── Onboarding submit ──────────────────────────────────────────────────────
@@ -68,16 +96,23 @@ document.getElementById('form-onboard').addEventListener('submit', e => {
   const name = el.nameInput.value.trim();
   if (!name) return;
   kubeling.name = name;
-  kubeling.color = el.colorInput.value;
   runSpawnAnimation();
 });
 
 function runSpawnAnimation() {
-  showScreen('spawn');
-  // After animation completes, open WS and go to game
-  setTimeout(() => {
-    connectWebSocket();
-  }, 2200);
+  // Play the launch video if available; on end (or after fallback timeout) connect WS
+  if (el.bgVideo && el.bgVideo.readyState >= 1) {
+    el.bgVideo.play();
+    el.bgVideo.onended = () => {
+      el.bgVideo.style.display = 'none';
+      connectWebSocket();
+    };
+    // Fallback if video never fires 'ended'
+    setTimeout(() => { if (!ws) connectWebSocket(); }, 8000);
+  } else {
+    // No video asset yet — short delay then straight to game
+    setTimeout(connectWebSocket, 600);
+  }
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -92,9 +127,11 @@ function connectWebSocket() {
     const msg = JSON.parse(data);
     switch (msg.type) {
       case 'spawned':
+        applyState(msg);
+        showScreen('game');
+        break;
       case 'state':
         applyState(msg);
-        if (msg.type === 'spawned') showScreen('game');
         break;
       case 'death':
         handleDeath(msg);
@@ -111,14 +148,13 @@ function connectWebSocket() {
 
   ws.onclose = () => {
     if (kubeling.alive) {
-      // Unexpected disconnect
       kubeling.alive = false;
       showDeathScreen('disconnected', null, null, null);
     }
   };
 }
 
-// ── Apply server state ─────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
 function applyState(msg) {
   kubeling = { ...kubeling, ...msg };
   updateStatBars();
@@ -128,53 +164,50 @@ function applyState(msg) {
 function updateStatBars() {
   const f = kubeling.fullness;
   const m = kubeling.mood;
-
   el.fullnessBar.style.width = `${f}%`;
   el.fullnessBar.classList.toggle('low', f < 25);
   el.fullnessVal.textContent = Math.round(f);
-
   el.moodBar.style.width = `${m}%`;
   el.moodBar.classList.toggle('low', m < 25);
   el.moodVal.textContent = Math.round(m);
-
   el.viewport.classList.toggle('warning', f < 25 || m < 25);
-
   el.feedBtn.disabled = kubeling.sleeping || !kubeling.alive;
+  el.gameName.textContent = kubeling.name;
 }
 
 function updateAnimation() {
   const s = kubeling;
-  if (!s.alive) { setAnim('dead'); return; }
-  if (s.sleeping) { setAnim('sleeping'); return; }
+  if (!s.alive)    { setAnim('dead');     return; }
+  if (s.sleeping)  { setAnim('sleeping'); return; }
   if (s.fullness < 25 || s.mood < 25) { setAnim('crying'); return; }
   setAnim('idle');
 }
 
-// ── Sprite animation swap ──────────────────────────────────────────────────
 function setAnim(state) {
   el.sprite.className = state;
   el.zzz.style.display = state === 'sleeping' ? 'block' : 'none';
-  el.gameName.textContent = kubeling.name;
 
   const src = SPRITES[state] ?? SPRITES.idle;
   if (el.spriteImg.dataset.state !== state) {
     el.spriteImg.src = src;
     el.spriteImg.dataset.state = state;
-    // Fallback: if no sprite file, keep placeholder visible
+    // Show placeholder until real sprite loads
     el.spriteImg.style.display = 'none';
     el.spritePlaceholder.style.display = 'flex';
+    el.spriteImg.onload = () => {
+      el.spriteImg.style.display = 'block';
+      el.spritePlaceholder.style.display = 'none';
+    };
   }
-  applyColor(kubeling.color);
 }
 
-// ── Feed ───────────────────────────────────────────────────────────────────
+// ── Actions ────────────────────────────────────────────────────────────────
 el.feedBtn.addEventListener('click', () => {
   if (!ws || kubeling.sleeping || !kubeling.alive) return;
   ws.send(JSON.stringify({ action: 'feed' }));
   flashAnim('eating');
 });
 
-// ── Pet (click on Kubeling) ────────────────────────────────────────────────
 el.viewport.addEventListener('click', () => {
   if (!ws || kubeling.sleeping || !kubeling.alive) return;
   ws.send(JSON.stringify({ action: 'pet' }));
@@ -191,7 +224,7 @@ function flashAnim(state) {
 function spawnConffetiBurst() {
   const burst = document.createElement('div');
   burst.className = 'confetti-burst';
-  burst.textContent = '🎉';
+  burst.textContent = '✨';
   el.viewport.appendChild(burst);
   burst.addEventListener('animationend', () => burst.remove());
 }
@@ -200,38 +233,34 @@ function spawnConffetiBurst() {
 function handleDeath(msg) {
   kubeling.alive = false;
   setAnim('dead');
-  setTimeout(() => {
-    showDeathScreen(msg.cause_of_death, msg.lifespan_seconds, msg.peak_fullness, msg.peak_mood);
-  }, 1500);
+  setTimeout(() => showDeathScreen(msg.cause_of_death, msg.lifespan_seconds, msg.peak_fullness, msg.peak_mood), 1500);
 }
 
 function showDeathScreen(cause, lifespan, peakFull, peakMood) {
-  const causeText = { hunger: 'DIED OF HUNGER', boredom: 'DIED OF BOREDOM', disconnected: 'POD TERMINATED' };
-  el.deathName.textContent = kubeling.name;
-  el.deathCause.textContent = causeText[cause] ?? 'UNKNOWN';
-  el.deathLifespan.textContent = lifespan != null ? formatLifespan(lifespan) : '—';
-  el.deathPeakFull.textContent = peakFull != null ? peakFull : '—';
-  el.deathPeakMood.textContent = peakMood != null ? peakMood : '—';
+  const causeMap = { hunger: 'DIED OF HUNGER', boredom: 'DIED OF BOREDOM', disconnected: 'POD TERMINATED' };
+  el.deathName.textContent  = kubeling.name;
+  el.deathCause.textContent = causeMap[cause] ?? 'UNKNOWN';
+  el.deathLifespan.textContent  = lifespan  != null ? formatLifespan(lifespan) : '—';
+  el.deathPeakFull.textContent  = peakFull  != null ? peakFull  : '—';
+  el.deathPeakMood.textContent  = peakMood  != null ? peakMood  : '—';
   showScreen('death');
 }
 
-function formatLifespan(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  if (m === 0) return `${s}s`;
-  return `${m}m ${s}s`;
+function formatLifespan(s) {
+  const m = Math.floor(s / 60);
+  return m === 0 ? `${s}s` : `${m}m ${s % 60}s`;
 }
 
 // ── Play again ─────────────────────────────────────────────────────────────
 document.getElementById('btn-play-again').addEventListener('click', () => {
   if (ws) { ws.onclose = null; ws.close(); ws = null; }
-  kubeling = { name: '', color: '#a8ff3e', fullness: 100, mood: 100, sleeping: false, alive: true };
+  kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, sleeping: false, alive: true };
   el.nameInput.value = '';
-  el.colorInput.value = '#a8ff3e';
-  el.colorPreview.style.background = '#a8ff3e';
+  if (el.bgVideo) { el.bgVideo.currentTime = 0; el.bgVideo.style.display = 'block'; }
   showScreen('onboarding');
 });
 
 // ── Init ───────────────────────────────────────────────────────────────────
+buildSwatches();
+applyPalette(PALETTES[0].hue);
 showScreen('onboarding');
-el.colorPreview.style.background = el.colorInput.value;
