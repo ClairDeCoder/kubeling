@@ -1,13 +1,9 @@
-@font-face {
-  font-family: 'ByteBounce';
-  src: url('/font/ByteBounce.ttf') format('truetype');
-}
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* ── Reset ────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── Monochromatic palette ────────────────────────────────────────────────── */
-/* --hue is the only value JS needs to change; everything else derives from it */
 :root {
   --hue: 215;
   --bg:        hsl(var(--hue), 18%,  6%);
@@ -18,13 +14,14 @@
   --highlight: hsl(var(--hue), 35%, 80%);
   --text:      hsl(var(--hue), 25%, 88%);
   --text-dim:  hsl(var(--hue), 16%, 44%);
+  --ink:       hsl(var(--hue), 18%, 2%);
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'ByteBounce', monospace;
-  font-size: 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -38,56 +35,96 @@ body {
 .screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
 /* ── Pixel box ────────────────────────────────────────────────────────────── */
+/* Outer hard shadow + inner bevel simulate a chunky pixel frame */
 .pixel-box {
   background: var(--panel);
   border: 3px solid var(--border);
-  box-shadow: 4px 4px 0 hsl(var(--hue), 18%, 2%);
+  border-top-color:    var(--dim);
+  border-left-color:   var(--dim);
+  border-right-color:  var(--ink);
+  border-bottom-color: var(--ink);
+  box-shadow:
+    4px 4px 0 var(--ink),
+    inset 1px 1px 0 rgba(255,255,255,0.05);
   padding: 16px;
   width: 100%;
 }
 
-/* ── Buttons ──────────────────────────────────────────────────────────────── */
+/* ── Pixel buttons ────────────────────────────────────────────────────────── */
 .btn {
-  font-family: 'ByteBounce', monospace;
-  font-size: 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
   color: var(--bg);
   background: var(--main);
-  border: none;
   padding: 10px 20px;
   cursor: pointer;
-  box-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%);
-  transition: background 0.3s, transform 0.05s, box-shadow 0.05s;
   text-transform: uppercase;
   image-rendering: pixelated;
+  /* NES-style raised border: bright top-left, dark bottom-right */
+  border: 3px solid;
+  border-top-color:    var(--highlight);
+  border-left-color:   var(--highlight);
+  border-right-color:  var(--ink);
+  border-bottom-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: background 0.3s, filter 0.2s;
 }
-.btn:active    { transform: translate(2px, 2px); box-shadow: 1px 1px 0 hsl(var(--hue), 18%, 2%); }
-.btn:disabled  { background: var(--dim); color: var(--text-dim); cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%); }
-.btn.secondary { background: var(--border); color: var(--text); }
-.btn.small     { font-size: 16px; padding: 7px 12px; }
+.btn:hover  { filter: brightness(1.1); }
+.btn:active {
+  /* Flip bevel on press = "pushed in" look */
+  border-top-color:    var(--ink);
+  border-left-color:   var(--ink);
+  border-right-color:  var(--highlight);
+  border-bottom-color: var(--highlight);
+  box-shadow: 1px 1px 0 var(--ink);
+  transform: translate(2px, 2px);
+}
+.btn:disabled {
+  background: var(--border);
+  color: var(--text-dim);
+  cursor: not-allowed;
+  filter: none;
+  border-top-color:    var(--dim);
+  border-left-color:   var(--dim);
+  border-right-color:  var(--ink);
+  border-bottom-color: var(--ink);
+  transform: none;
+}
+.btn.secondary {
+  background: var(--panel);
+  color: var(--text);
+  border-top-color:    var(--dim);
+  border-left-color:   var(--dim);
+}
+.btn.small { font-size: 8px; padding: 7px 12px; }
 
 /* ── Inputs ───────────────────────────────────────────────────────────────── */
 input[type="text"] {
-  font-family: 'ByteBounce', monospace;
-  font-size: 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
   background: hsl(var(--hue), 18%, 4%);
   color: var(--highlight);
-  border: 2px solid var(--border);
+  /* Inset border: dark top-left, light bottom-right = sunken look */
+  border: 3px solid;
+  border-top-color:    var(--ink);
+  border-left-color:   var(--ink);
+  border-right-color:  var(--dim);
+  border-bottom-color: var(--dim);
   padding: 8px;
   width: 100%;
   outline: none;
-  transition: border-color 0.2s;
 }
-input[type="text"]:focus { border-color: var(--main); }
-label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: block; }
+input[type="text"]:focus {
+  border-top-color:    var(--border);
+  border-left-color:   var(--border);
+}
+label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: block; }
 
 /* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
-
-/* Full-screen video sits behind everything; its first frame = onboarding bg   */
 #bg-video {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   object-fit: cover;
   z-index: -1;
   opacity: 0.35;
@@ -99,40 +136,41 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
   align-items: center;
   gap: 8px;
 }
-
 #screen-onboarding .title {
-  font-size: 40px;
+  font-size: 20px;
   color: var(--highlight);
-  text-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%);
+  text-shadow: 3px 3px 0 var(--ink);
   letter-spacing: 2px;
   text-align: center;
   transition: color 0.4s;
 }
 #screen-onboarding .subtitle {
-  font-size: 24px;
+  font-size: 8px;
   color: var(--text-dim);
   text-align: center;
 }
 .form-row { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 
 /* ── Color swatches ───────────────────────────────────────────────────────── */
-.swatch-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+.swatch-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .swatch {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border: 3px solid transparent;
+  border-top-color:    rgba(255,255,255,0.3);
+  border-left-color:   rgba(255,255,255,0.3);
+  border-right-color:  var(--ink);
+  border-bottom-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
   cursor: pointer;
-  box-shadow: 2px 2px 0 #000;
-  transition: transform 0.1s, border-color 0.15s;
+  transition: transform 0.1s;
   image-rendering: pixelated;
 }
 .swatch:hover    { transform: scale(1.15); }
-.swatch.selected { border-color: var(--highlight); transform: scale(1.1); }
+.swatch.selected {
+  border-top-color:    var(--highlight);
+  border-left-color:   var(--highlight);
+  transform: scale(1.1);
+}
 
 /* ── ══════════════ GAME SCREEN ══════════════ ────────────────────────────── */
 #screen-game { gap: 14px; }
@@ -142,20 +180,24 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  font-size: 16px;
+  font-size: 8px;
   color: var(--text-dim);
 }
-.game-header .kubeling-name { color: var(--highlight); font-size: 20px; transition: color 0.4s; }
+.game-header .kubeling-name { color: var(--highlight); font-size: 10px; transition: color 0.4s; }
 
-/* Pod interior — background set via inline style once dev asset exists */
+/* Kubeling viewport */
 .kubeling-viewport {
   width: 100%;
   height: 200px;
   background: var(--panel);
   background-size: cover;
   background-position: center;
-  border: 3px solid var(--border);
-  box-shadow: 4px 4px 0 hsl(var(--hue), 18%, 2%);
+  border: 3px solid;
+  border-top-color:    var(--dim);
+  border-left-color:   var(--dim);
+  border-right-color:  var(--ink);
+  border-bottom-color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,36 +206,63 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
   transition: border-color 0.3s;
 }
 
-/* Sprite — grayscale source, tinted via CSS filter set by JS */
+/* ── Feed button — cookie in a box, overlaid on viewport ─────────────────── */
+.feed-box {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 48px;
+  height: 48px;
+  background: var(--panel);
+  border: 3px solid;
+  border-top-color:    var(--dim);
+  border-left-color:   var(--dim);
+  border-right-color:  var(--ink);
+  border-bottom-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  transition: filter 0.1s;
+}
+.feed-box:hover  { filter: brightness(1.2); }
+.feed-box:active {
+  border-top-color:    var(--ink);
+  border-left-color:   var(--ink);
+  border-right-color:  var(--dim);
+  border-bottom-color: var(--dim);
+  box-shadow: 1px 1px 0 var(--ink);
+  transform: translate(2px, 2px);
+}
+.feed-box:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── Sprite ───────────────────────────────────────────────────────────────── */
 #kubeling-sprite {
-  width: 80px;
-  height: 80px;
+  width: 80px; height: 80px;
   image-rendering: pixelated;
   position: relative;
-  /* --sprite-filter is set by JS based on chosen hue */
   filter: var(--sprite-filter, grayscale(1) brightness(1.4));
   transition: filter 0.4s;
 }
-#kubeling-sprite img {
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-}
+#kubeling-sprite img { width: 100%; height: 100%; image-rendering: pixelated; }
 .sprite-placeholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  border: 3px solid hsl(var(--hue), 18%, 2%);
+  width: 80px; height: 80px;
+  border: 3px solid var(--ink);
+  border-top-color:  var(--dim);
+  border-left-color: var(--dim);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
-  box-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%);
-  background: var(--dim);
+  box-shadow: 3px 3px 0 var(--ink);
+  background: var(--panel);
   transition: background 0.4s;
 }
 
-/* Sprite state animations */
+/* Sprite animations */
 #kubeling-sprite.idle     { animation: bounce  1.2s ease-in-out infinite; }
 #kubeling-sprite.sleeping { animation: breathe 3s   ease-in-out infinite; }
 #kubeling-sprite.eating   { animation: nibble  0.3s steps(1) 6; }
@@ -204,13 +273,13 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
 @keyframes bounce  { 0%,100% { transform: translateY(0); }    50% { transform: translateY(-8px); } }
 @keyframes breathe { 0%,100% { transform: scale(1); }         50% { transform: scale(0.94); } }
 @keyframes nibble  { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-4px) rotate(-5deg); } }
-@keyframes wiggle  { 0%,100% { transform: rotate(0deg); }    25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
-@keyframes shake   { 0%,100% { transform: translateX(0); }   25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes wiggle  { 0%,100% { transform: rotate(0deg); }     25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+@keyframes shake   { 0%,100% { transform: translateX(0); }    25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
 .zzz {
   position: absolute;
   top: 16px; right: 24px;
-  font-size: 28px;
+  font-size: 14px;
   color: var(--main);
   animation: floatup 2s ease-in-out infinite;
   display: none;
@@ -219,12 +288,12 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
 @keyframes floatup { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
 
 .kubeling-viewport.warning { animation: warnflash 1s ease-in-out infinite; }
-@keyframes warnflash { 0%,100% { border-color: var(--border); } 50% { border-color: hsl(var(--hue), 50%, 50%); } }
+@keyframes warnflash { 0%,100% { border-color: inherit; } 50% { border-top-color: hsl(var(--hue), 50%, 50%); border-left-color: hsl(var(--hue), 50%, 50%); } }
 
 .confetti-burst {
   position: absolute;
   pointer-events: none;
-  font-size: 35px;
+  font-size: 18px;
   animation: burst 0.6s ease-out forwards;
   top: 50%; left: 50%;
 }
@@ -232,9 +301,9 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
 
 /* ── Stat bars ────────────────────────────────────────────────────────────── */
 .stats { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.stat-row  { display: flex; flex-direction: column; gap: 4px; }
+.stat-row { display: flex; flex-direction: column; gap: 4px; }
 .stat-label {
-  font-size: 16px;
+  font-size: 8px;
   color: var(--text-dim);
   display: flex;
   justify-content: space-between;
@@ -244,8 +313,11 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
   width: 100%;
   height: 14px;
   background: hsl(var(--hue), 18%, 4%);
-  border: 2px solid var(--border);
-  position: relative;
+  border: 2px solid;
+  border-top-color:    var(--ink);
+  border-left-color:   var(--ink);
+  border-right-color:  var(--dim);
+  border-bottom-color: var(--dim);
 }
 .bar-fill {
   height: 100%;
@@ -254,34 +326,34 @@ label { font-size: 24px; color: var(--text-dim); margin-bottom: 4px; display: bl
 }
 .bar-fill.low { background: hsl(var(--hue), 45%, 45%); }
 
-/* ── Actions ──────────────────────────────────────────────────────────────── */
+/* ── Actions / nav ────────────────────────────────────────────────────────── */
 .actions     { display: flex; gap: 12px; width: 100%; justify-content: center; }
 .nav-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
 /* ── ══════════════ DEATH SCREEN ══════════════ ───────────────────────────── */
 #screen-death { text-align: center; gap: 18px; }
 #screen-death .game-over {
-  font-size: 44px;
+  font-size: 22px;
   color: var(--highlight);
-  text-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%);
+  text-shadow: 3px 3px 0 var(--ink);
   animation: flicker 1s steps(1) infinite;
 }
 @keyframes flicker { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.55; } }
 
-#screen-death .death-name  { font-size: 24px; color: var(--highlight); }
-#screen-death .death-cause { font-size: 18px; color: var(--text-dim); }
+#screen-death .death-name  { font-size: 12px; color: var(--highlight); }
+#screen-death .death-cause { font-size: 9px;  color: var(--text-dim); }
 
 .death-stats { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .death-stat-row {
   display: flex;
   justify-content: space-between;
-  font-size: 18px;
+  font-size: 9px;
   padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
 .death-stat-row span { color: var(--main); }
 
-/* ── Star field (individual elements generated by app.js) ─────────────────── */
+/* ── Star field ───────────────────────────────────────────────────────────── */
 .star {
   position: fixed;
   border-radius: 50%;
