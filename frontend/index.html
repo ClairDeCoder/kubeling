@@ -2,9 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kubeling</title>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <h1>Kubeling — coming soon</h1>
+
+  <!-- ══ ONBOARDING ══ -->
+  <section id="screen-onboarding" class="screen">
+    <div class="title">KUBELING</div>
+    <div class="subtitle">a pod is waiting for you...</div>
+
+    <form id="form-onboard" class="pixel-box" style="gap:16px;display:flex;flex-direction:column;">
+      <div class="form-row">
+        <label for="input-name">KUBELING NAME</label>
+        <input id="input-name" type="text" maxlength="32" placeholder="Enter a name..." autocomplete="off" required />
+      </div>
+      <div class="form-row">
+        <label>COLOR</label>
+        <div class="color-row">
+          <input id="input-color" type="color" value="#a8ff3e" />
+          <div id="color-preview" class="color-preview"></div>
+          <span style="font-size:8px;color:var(--text-dim);">pick your Kubeling's color</span>
+        </div>
+      </div>
+      <button type="submit" class="btn" id="btn-spawn">SPIN UP POD</button>
+    </form>
+  </section>
+
+  <!-- ══ SPAWN ANIMATION ══ -->
+  <section id="screen-spawn" class="screen">
+    <div class="pod-anim">🚀</div>
+    <div class="spawn-text">YOU JUST SPUN UP A POD!</div>
+  </section>
+
+  <!-- ══ GAME ══ -->
+  <section id="screen-game" class="screen">
+    <div class="game-header">
+      <span class="kubeling-name" id="game-name">—</span>
+      <span id="game-status">ALIVE</span>
+    </div>
+
+    <!-- Sprite viewport — click to pet -->
+    <div class="kubeling-viewport" id="kubeling-viewport">
+      <div id="kubeling-sprite" class="idle">
+        <!-- Swap src to sprites/idle.gif etc. when assets are ready -->
+        <img id="sprite-img" src="" alt="" style="display:none;" />
+        <div id="sprite-placeholder" class="sprite-placeholder">🐣</div>
+      </div>
+      <div class="zzz" id="zzz">z z z</div>
+    </div>
+
+    <!-- Stat bars -->
+    <div class="stats pixel-box">
+      <div class="stat-row">
+        <div class="stat-label">
+          FULLNESS <span id="val-fullness">100</span>/100
+        </div>
+        <div class="bar-track">
+          <div id="bar-fullness" class="bar-fill fullness" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label">
+          MOOD <span id="val-mood">100</span>/100
+        </div>
+        <div class="bar-track">
+          <div id="bar-mood" class="bar-fill mood" style="width:100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn" id="btn-feed">🍖 FEED</button>
+      <button class="btn blue small" onclick="window.location.href='/stats'">📊 VIEW STATS</button>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn small" style="background:var(--text-dim);" onclick="window.location.href='/arch'">☁ ARCHITECTURE</button>
+    </div>
+
+    <div style="font-size:7px;color:var(--text-dim);text-align:center;">
+      click your Kubeling to cheer it up!
+    </div>
+  </section>
+
+  <!-- ══ DEATH ══ -->
+  <section id="screen-death" class="screen">
+    <div class="game-over">GAME OVER</div>
+    <div class="death-name" id="death-name">—</div>
+    <div class="death-cause" id="death-cause">—</div>
+
+    <div class="death-stats pixel-box">
+      <div class="death-stat-row">LIFESPAN   <span id="death-lifespan">—</span></div>
+      <div class="death-stat-row">PEAK FULLNESS <span id="death-peak-fullness">—</span></div>
+      <div class="death-stat-row">PEAK MOOD  <span id="death-peak-mood">—</span></div>
+    </div>
+
+    <button class="btn" id="btn-play-again">TRY AGAIN</button>
+  </section>
+
+  <script src="/static/app.js"></script>
 </body>
 </html>
