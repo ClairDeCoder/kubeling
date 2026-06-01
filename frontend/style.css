@@ -3,7 +3,7 @@
 /* ── Reset ────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Monochromatic palette ────────────────────────────────────────────────── */
+/* ── Pixel corner shape (4px notch at each corner — no radius, no bevel) ── */
 :root {
   --hue: 215;
   --bg:        hsl(var(--hue), 18%,  6%);
@@ -15,6 +15,14 @@
   --text:      hsl(var(--hue), 25%, 88%);
   --text-dim:  hsl(var(--hue), 16%, 44%);
   --ink:       hsl(var(--hue), 18%, 2%);
+
+  /* Reusable clip-path polygon — cuts 4px off each corner */
+  --px-clip: polygon(
+    4px 0%, calc(100% - 4px) 0%,
+    100% 4px, 100% calc(100% - 4px),
+    calc(100% - 4px) 100%, 4px 100%,
+    0% calc(100% - 4px), 0% 4px
+  );
 }
 
 body {
@@ -34,69 +42,33 @@ body {
 .screen { display: none; width: 100%; max-width: 480px; padding: 24px; }
 .screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
-/* ── Pixel box ────────────────────────────────────────────────────────────── */
-/* Outer hard shadow + inner bevel simulate a chunky pixel frame */
+/* ── Pixel box — flat, border only, pixel corners ─────────────────────────── */
 .pixel-box {
   background: var(--panel);
-  border: 3px solid var(--border);
-  border-top-color:    var(--dim);
-  border-left-color:   var(--dim);
-  border-right-color:  var(--ink);
-  border-bottom-color: var(--ink);
-  box-shadow:
-    4px 4px 0 var(--ink),
-    inset 1px 1px 0 rgba(255,255,255,0.05);
+  border: 2px solid var(--border);
+  clip-path: var(--px-clip);
   padding: 16px;
   width: 100%;
 }
 
-/* ── Pixel buttons ────────────────────────────────────────────────────────── */
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
 .btn {
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
   color: var(--bg);
   background: var(--main);
+  border: 2px solid var(--border);
+  clip-path: var(--px-clip);
   padding: 10px 20px;
   cursor: pointer;
   text-transform: uppercase;
-  image-rendering: pixelated;
-  /* NES-style raised border: bright top-left, dark bottom-right */
-  border: 3px solid;
-  border-top-color:    var(--highlight);
-  border-left-color:   var(--highlight);
-  border-right-color:  var(--ink);
-  border-bottom-color: var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
-  transition: background 0.3s, filter 0.2s;
+  transition: background 0.2s, filter 0.1s;
 }
-.btn:hover  { filter: brightness(1.1); }
-.btn:active {
-  /* Flip bevel on press = "pushed in" look */
-  border-top-color:    var(--ink);
-  border-left-color:   var(--ink);
-  border-right-color:  var(--highlight);
-  border-bottom-color: var(--highlight);
-  box-shadow: 1px 1px 0 var(--ink);
-  transform: translate(2px, 2px);
-}
-.btn:disabled {
-  background: var(--border);
-  color: var(--text-dim);
-  cursor: not-allowed;
-  filter: none;
-  border-top-color:    var(--dim);
-  border-left-color:   var(--dim);
-  border-right-color:  var(--ink);
-  border-bottom-color: var(--ink);
-  transform: none;
-}
-.btn.secondary {
-  background: var(--panel);
-  color: var(--text);
-  border-top-color:    var(--dim);
-  border-left-color:   var(--dim);
-}
-.btn.small { font-size: 8px; padding: 7px 12px; }
+.btn:hover    { filter: brightness(1.12); }
+.btn:active   { filter: brightness(0.85); }
+.btn:disabled { background: var(--dim); color: var(--text-dim); cursor: not-allowed; filter: none; }
+.btn.secondary { background: var(--panel); color: var(--text); border-color: var(--dim); }
+.btn.small    { font-size: 8px; padding: 7px 12px; }
 
 /* ── Inputs ───────────────────────────────────────────────────────────────── */
 input[type="text"] {
@@ -104,165 +76,105 @@ input[type="text"] {
   font-size: 10px;
   background: hsl(var(--hue), 18%, 4%);
   color: var(--highlight);
-  /* Inset border: dark top-left, light bottom-right = sunken look */
-  border: 3px solid;
-  border-top-color:    var(--ink);
-  border-left-color:   var(--ink);
-  border-right-color:  var(--dim);
-  border-bottom-color: var(--dim);
+  border: 2px solid var(--border);
+  clip-path: var(--px-clip);
   padding: 8px;
   width: 100%;
   outline: none;
+  transition: border-color 0.2s;
 }
-input[type="text"]:focus {
-  border-top-color:    var(--border);
-  border-left-color:   var(--border);
-}
+input[type="text"]:focus { border-color: var(--main); }
 label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: block; }
 
 /* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
 #bg-video {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  z-index: -1;
-  opacity: 0.35;
+  z-index: -1; opacity: 0.35;
 }
 
-.onboard-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
+.onboard-header { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #screen-onboarding .title {
   font-size: 20px;
   color: var(--highlight);
-  text-shadow: 3px 3px 0 var(--ink);
+  text-shadow: 2px 2px 0 var(--ink);
   letter-spacing: 2px;
   text-align: center;
   transition: color 0.4s;
 }
-#screen-onboarding .subtitle {
-  font-size: 8px;
-  color: var(--text-dim);
-  text-align: center;
-}
+#screen-onboarding .subtitle { font-size: 8px; color: var(--text-dim); text-align: center; }
 .form-row { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 
 /* ── Color swatches ───────────────────────────────────────────────────────── */
 .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .swatch {
   width: 32px; height: 32px;
-  border: 3px solid transparent;
-  border-top-color:    rgba(255,255,255,0.3);
-  border-left-color:   rgba(255,255,255,0.3);
-  border-right-color:  var(--ink);
-  border-bottom-color: var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
+  border: 2px solid transparent;
+  clip-path: var(--px-clip);
   cursor: pointer;
   transition: transform 0.1s;
   image-rendering: pixelated;
 }
 .swatch:hover    { transform: scale(1.15); }
-.swatch.selected {
-  border-top-color:    var(--highlight);
-  border-left-color:   var(--highlight);
-  transform: scale(1.1);
-}
+.swatch.selected { border-color: var(--highlight); transform: scale(1.1); }
 
 /* ── ══════════════ GAME SCREEN ══════════════ ────────────────────────────── */
 #screen-game { gap: 14px; }
 
 .game-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  font-size: 8px;
-  color: var(--text-dim);
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; font-size: 8px; color: var(--text-dim);
 }
 .game-header .kubeling-name { color: var(--highlight); font-size: 10px; transition: color 0.4s; }
 
 /* Kubeling viewport */
 .kubeling-viewport {
-  width: 100%;
-  height: 200px;
+  width: 100%; height: 200px;
   background: var(--panel);
-  background-size: cover;
-  background-position: center;
-  border: 3px solid;
-  border-top-color:    var(--dim);
-  border-left-color:   var(--dim);
-  border-right-color:  var(--ink);
-  border-bottom-color: var(--ink);
-  box-shadow: 4px 4px 0 var(--ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+  background-size: cover; background-position: center;
+  border: 2px solid var(--border);
+  clip-path: var(--px-clip);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
   transition: border-color 0.3s;
 }
 
-/* ── Feed button — cookie in a box, overlaid on viewport ─────────────────── */
+/* ── Feed button — cookie in a box, overlaid bottom-right of viewport ──────── */
 .feed-box {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 48px;
-  height: 48px;
+  position: absolute; bottom: 10px; right: 10px;
+  width: 48px; height: 48px;
   background: var(--panel);
-  border: 3px solid;
-  border-top-color:    var(--dim);
-  border-left-color:   var(--dim);
-  border-right-color:  var(--ink);
-  border-bottom-color: var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
+  border: 2px solid var(--dim);
+  clip-path: var(--px-clip);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; line-height: 1;
   transition: filter 0.1s;
 }
-.feed-box:hover  { filter: brightness(1.2); }
-.feed-box:active {
-  border-top-color:    var(--ink);
-  border-left-color:   var(--ink);
-  border-right-color:  var(--dim);
-  border-bottom-color: var(--dim);
-  box-shadow: 1px 1px 0 var(--ink);
-  transform: translate(2px, 2px);
-}
-.feed-box:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.feed-box:hover   { filter: brightness(1.2); }
+.feed-box:active  { filter: brightness(0.8); }
+.feed-box:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ── Sprite ───────────────────────────────────────────────────────────────── */
 #kubeling-sprite {
   width: 80px; height: 80px;
-  image-rendering: pixelated;
-  position: relative;
+  image-rendering: pixelated; position: relative;
   filter: var(--sprite-filter, grayscale(1) brightness(1.4));
   transition: filter 0.4s;
 }
 #kubeling-sprite img { width: 100%; height: 100%; image-rendering: pixelated; }
 .sprite-placeholder {
   width: 80px; height: 80px;
-  border: 3px solid var(--ink);
-  border-top-color:  var(--dim);
-  border-left-color: var(--dim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 2px solid var(--dim);
+  clip-path: var(--px-clip);
+  display: flex; align-items: center; justify-content: center;
   font-size: 32px;
-  box-shadow: 3px 3px 0 var(--ink);
   background: var(--panel);
   transition: background 0.4s;
 }
 
-/* Sprite animations */
+/* Sprite state animations */
 #kubeling-sprite.idle     { animation: bounce  1.2s ease-in-out infinite; }
 #kubeling-sprite.sleeping { animation: breathe 3s   ease-in-out infinite; }
 #kubeling-sprite.eating   { animation: nibble  0.3s steps(1) 6; }
@@ -277,51 +189,34 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 @keyframes shake   { 0%,100% { transform: translateX(0); }    25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
 .zzz {
-  position: absolute;
-  top: 16px; right: 24px;
-  font-size: 14px;
-  color: var(--main);
+  position: absolute; top: 16px; right: 24px;
+  font-size: 14px; color: var(--main);
   animation: floatup 2s ease-in-out infinite;
-  display: none;
-  transition: color 0.4s;
+  display: none; transition: color 0.4s;
 }
 @keyframes floatup { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
 
 .kubeling-viewport.warning { animation: warnflash 1s ease-in-out infinite; }
-@keyframes warnflash { 0%,100% { border-color: inherit; } 50% { border-top-color: hsl(var(--hue), 50%, 50%); border-left-color: hsl(var(--hue), 50%, 50%); } }
+@keyframes warnflash { 0%,100% { border-color: var(--border); } 50% { border-color: hsl(var(--hue), 50%, 50%); } }
 
 .confetti-burst {
-  position: absolute;
-  pointer-events: none;
-  font-size: 18px;
-  animation: burst 0.6s ease-out forwards;
-  top: 50%; left: 50%;
+  position: absolute; pointer-events: none; font-size: 18px;
+  animation: burst 0.6s ease-out forwards; top: 50%; left: 50%;
 }
 @keyframes burst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; } }
 
 /* ── Stat bars ────────────────────────────────────────────────────────────── */
 .stats { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .stat-row { display: flex; flex-direction: column; gap: 4px; }
-.stat-label {
-  font-size: 8px;
-  color: var(--text-dim);
-  display: flex;
-  justify-content: space-between;
-}
+.stat-label { font-size: 8px; color: var(--text-dim); display: flex; justify-content: space-between; }
 .stat-label span { color: var(--text); }
 .bar-track {
-  width: 100%;
-  height: 14px;
+  width: 100%; height: 14px;
   background: hsl(var(--hue), 18%, 4%);
-  border: 2px solid;
-  border-top-color:    var(--ink);
-  border-left-color:   var(--ink);
-  border-right-color:  var(--dim);
-  border-bottom-color: var(--dim);
+  border: 2px solid var(--border);
 }
 .bar-fill {
-  height: 100%;
-  background: var(--main);
+  height: 100%; background: var(--main);
   transition: width 0.4s steps(8), background 0.3s;
 }
 .bar-fill.low { background: hsl(var(--hue), 45%, 45%); }
@@ -333,9 +228,8 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 /* ── ══════════════ DEATH SCREEN ══════════════ ───────────────────────────── */
 #screen-death { text-align: center; gap: 18px; }
 #screen-death .game-over {
-  font-size: 22px;
-  color: var(--highlight);
-  text-shadow: 3px 3px 0 var(--ink);
+  font-size: 22px; color: var(--highlight);
+  text-shadow: 2px 2px 0 var(--ink);
   animation: flicker 1s steps(1) infinite;
 }
 @keyframes flicker { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.55; } }
@@ -345,21 +239,17 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 
 .death-stats { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .death-stat-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 9px;
-  padding: 4px 0;
+  display: flex; justify-content: space-between;
+  font-size: 9px; padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
 .death-stat-row span { color: var(--main); }
 
 /* ── Star field ───────────────────────────────────────────────────────────── */
 .star {
-  position: fixed;
-  border-radius: 50%;
+  position: fixed; border-radius: 50%;
   background: hsl(var(--hue), 30%, 75%);
-  pointer-events: none;
-  z-index: -1;
+  pointer-events: none; z-index: -1;
   animation: twinkle var(--dur, 3s) ease-in-out var(--delay, 0s) infinite;
 }
 @keyframes twinkle {
