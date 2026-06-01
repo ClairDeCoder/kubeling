@@ -1,0 +1,295 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* ── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0a0a1a;
+  --panel:       #12122a;
+  --border:      #2a2a5a;
+  --green:       #a8ff3e;
+  --red:         #ff4444;
+  --yellow:      #ffd700;
+  --blue:        #4fc3f7;
+  --text:        #e0e0ff;
+  --text-dim:    #6060a0;
+  --fullness-bar:#a8ff3e;
+  --mood-bar:    #ff6eb4;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Screen system ────────────────────────────────────────────────────────── */
+.screen { display: none; width: 100%; max-width: 480px; padding: 24px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+/* ── Pixel borders ────────────────────────────────────────────────────────── */
+.pixel-box {
+  background: var(--panel);
+  border: 3px solid var(--border);
+  box-shadow: 3px 3px 0 #000, inset -1px -1px 0 #000;
+  padding: 16px;
+  width: 100%;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn {
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--bg);
+  background: var(--green);
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #000;
+  image-rendering: pixelated;
+  transition: transform 0.05s, box-shadow 0.05s;
+  text-transform: uppercase;
+}
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+.btn:disabled { background: var(--text-dim); cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 #000; }
+.btn.red   { background: var(--red);    color: #fff; }
+.btn.blue  { background: var(--blue);   color: var(--bg); }
+.btn.small { font-size: 8px; padding: 7px 12px; }
+
+/* ── Inputs ───────────────────────────────────────────────────────────────── */
+input[type="text"], input[type="color"] {
+  font-family: inherit;
+  font-size: 10px;
+  background: #000;
+  color: var(--green);
+  border: 2px solid var(--border);
+  padding: 8px;
+  width: 100%;
+  outline: none;
+}
+input[type="text"]:focus { border-color: var(--green); }
+input[type="color"] {
+  height: 36px;
+  cursor: pointer;
+  padding: 2px;
+  width: 60px;
+}
+label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: block; }
+
+/* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
+#screen-onboarding .title {
+  font-size: 20px;
+  color: var(--green);
+  text-shadow: 3px 3px 0 #000;
+  letter-spacing: 2px;
+  text-align: center;
+}
+#screen-onboarding .subtitle {
+  font-size: 8px;
+  color: var(--text-dim);
+  text-align: center;
+}
+.form-row { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.color-row { display: flex; align-items: center; gap: 12px; }
+.color-preview {
+  width: 36px; height: 36px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+/* ── ══════════════ SPAWN ANIMATION ══════════════ ────────────────────────── */
+#screen-spawn {
+  text-align: center;
+  justify-content: center;
+}
+#screen-spawn .pod-anim {
+  font-size: 48px;
+  animation: launch 1.2s ease-in forwards;
+}
+#screen-spawn .spawn-text {
+  font-size: 9px;
+  color: var(--green);
+  animation: fadein 0.5s 1.4s ease both;
+  opacity: 0;
+}
+@keyframes launch {
+  0%   { transform: translateY(0);    opacity: 1; }
+  60%  { transform: translateY(-40px); opacity: 1; }
+  100% { transform: translateY(-120px); opacity: 0; }
+}
+@keyframes fadein { to { opacity: 1; } }
+
+/* ── ══════════════ GAME SCREEN ══════════════ ────────────────────────────── */
+#screen-game { gap: 14px; }
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 8px;
+  color: var(--text-dim);
+}
+.game-header .kubeling-name { color: var(--text); font-size: 10px; }
+
+/* Kubeling viewport */
+.kubeling-viewport {
+  width: 100%;
+  height: 200px;
+  background: var(--panel);
+  border: 3px solid var(--border);
+  box-shadow: 3px 3px 0 #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Sprite placeholder ── */
+/* Real sprites (idle.gif, eat.gif, sleep.gif, confetti.gif, cry.gif)
+   will sit in frontend/sprites/ and be swapped in via app.js            */
+#kubeling-sprite {
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+  position: relative;
+}
+#kubeling-sprite img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  /* color tint applied via mix-blend-mode overlay in .tint layer */
+}
+.sprite-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  border: 3px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 3px 3px 0 #000;
+}
+
+/* Animations on the sprite container */
+#kubeling-sprite.idle    { animation: bounce 1.2s ease-in-out infinite; }
+#kubeling-sprite.sleeping { animation: breathe 3s ease-in-out infinite; }
+#kubeling-sprite.eating  { animation: nibble 0.3s steps(1) 6; }
+#kubeling-sprite.confetti { animation: wiggle 0.2s steps(1) 8; }
+#kubeling-sprite.crying  { animation: shake 0.4s ease-in-out infinite; }
+#kubeling-sprite.dead    { animation: none; opacity: 0.4; filter: grayscale(1); }
+
+@keyframes bounce  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes breathe { 0%,100% { transform: scale(1);    } 50% { transform: scale(0.95); } }
+@keyframes nibble  { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-4px) rotate(-5deg); } }
+@keyframes wiggle  { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+@keyframes shake   { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+/* Sleep ZZZ overlay */
+.zzz {
+  position: absolute;
+  top: 16px; right: 24px;
+  font-size: 14px;
+  color: var(--blue);
+  animation: floatup 2s ease-in-out infinite;
+  display: none;
+}
+.sleeping .zzz { display: block; }
+@keyframes floatup { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
+
+/* Low-stat warning flash */
+.kubeling-viewport.warning { animation: warnflash 1s ease-in-out infinite; }
+@keyframes warnflash { 0%,100% { border-color: var(--border); } 50% { border-color: var(--red); } }
+
+/* Confetti burst */
+.confetti-burst {
+  position: absolute;
+  pointer-events: none;
+  font-size: 18px;
+  animation: burst 0.6s ease-out forwards;
+  top: 50%; left: 50%;
+}
+@keyframes burst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; } }
+
+/* ── Stat bars ──────────────────────────────────────────────────────────── */
+.stats { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.stat-row { display: flex; flex-direction: column; gap: 4px; }
+.stat-label {
+  font-size: 8px;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+}
+.stat-label span { color: var(--text); }
+.bar-track {
+  width: 100%;
+  height: 16px;
+  background: #000;
+  border: 2px solid var(--border);
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  transition: width 0.4s steps(8), background 0.3s;
+  image-rendering: pixelated;
+}
+.bar-fill.fullness { background: var(--fullness-bar); }
+.bar-fill.fullness.low { background: var(--red); }
+.bar-fill.mood { background: var(--mood-bar); }
+.bar-fill.mood.low { background: var(--red); }
+
+/* ── Action buttons ─────────────────────────────────────────────────────── */
+.actions { display: flex; gap: 12px; width: 100%; justify-content: center; }
+
+/* ── Nav buttons ────────────────────────────────────────────────────────── */
+.nav-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+/* ── ══════════════ DEATH SCREEN ══════════════ ───────────────────────────── */
+#screen-death { text-align: center; gap: 18px; }
+#screen-death .game-over {
+  font-size: 22px;
+  color: var(--red);
+  text-shadow: 3px 3px 0 #000;
+  animation: flicker 1s steps(1) infinite;
+}
+@keyframes flicker { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.6; } }
+
+#screen-death .death-name { font-size: 12px; color: var(--yellow); }
+#screen-death .death-cause { font-size: 9px; color: var(--text-dim); }
+
+.death-stats { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.death-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.death-stat-row span { color: var(--green); }
+
+/* ── Stars background ─────────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 40%, #aaf 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 10%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 80%, #aaf 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 50%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 55%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 90%, #aaf 0%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+}
