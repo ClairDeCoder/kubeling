@@ -100,19 +100,22 @@ document.getElementById('form-onboard').addEventListener('submit', e => {
 });
 
 function runSpawnAnimation() {
-  // Play the launch video if available; on end (or after fallback timeout) connect WS
-  if (el.bgVideo && el.bgVideo.readyState >= 1) {
-    el.bgVideo.play();
-    el.bgVideo.onended = () => {
-      el.bgVideo.style.display = 'none';
+  if (!el.bgVideo) { connectWebSocket(); return; }
+
+  // play() returns a Promise; if the file doesn't exist it rejects — handle both
+  el.bgVideo.play()
+    .then(() => {
+      el.bgVideo.onended = () => {
+        el.bgVideo.style.display = 'none';
+        connectWebSocket();
+      };
+      // Safety fallback in case 'ended' never fires
+      setTimeout(() => { if (!ws) connectWebSocket(); }, 12000);
+    })
+    .catch(() => {
+      // No video file yet — skip straight to game
       connectWebSocket();
-    };
-    // Fallback if video never fires 'ended'
-    setTimeout(() => { if (!ws) connectWebSocket(); }, 8000);
-  } else {
-    // No video asset yet — short delay then straight to game
-    setTimeout(connectWebSocket, 600);
-  }
+    });
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -260,7 +263,27 @@ document.getElementById('btn-play-again').addEventListener('click', () => {
   showScreen('onboarding');
 });
 
+// ── Stars ──────────────────────────────────────────────────────────────────
+function buildStars(count = 40) {
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() < 0.7 ? 1 : 2; // mostly 1px, some 2px
+    s.style.cssText = [
+      `width:${size}px`, `height:${size}px`,
+      `top:${(Math.random() * 100).toFixed(2)}%`,
+      `left:${(Math.random() * 100).toFixed(2)}%`,
+      `--dur:${(2 + Math.random() * 4).toFixed(2)}s`,
+      `--delay:-${(Math.random() * 5).toFixed(2)}s`, // negative delay = starts mid-cycle
+    ].join(';');
+    frag.appendChild(s);
+  }
+  document.body.appendChild(frag);
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
+buildStars();
 buildSwatches();
 applyPalette(PALETTES[0].hue);
 showScreen('onboarding');
