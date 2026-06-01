@@ -24,7 +24,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'ByteBounce', monospace;
-  font-size: 10px;
+  font-size: 16px;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -49,7 +49,7 @@ body {
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
 .btn {
   font-family: 'ByteBounce', monospace;
-  font-size: 10px;
+  font-size: 16px;
   color: var(--bg);
   background: var(--main);
   border: none;
@@ -63,12 +63,12 @@ body {
 .btn:active    { transform: translate(2px, 2px); box-shadow: 1px 1px 0 hsl(var(--hue), 18%, 2%); }
 .btn:disabled  { background: var(--dim); color: var(--text-dim); cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%); }
 .btn.secondary { background: var(--border); color: var(--text); }
-.btn.small     { font-size: 8px; padding: 7px 12px; }
+.btn.small     { font-size: 13px; padding: 7px 12px; }
 
 /* ── Inputs ───────────────────────────────────────────────────────────────── */
 input[type="text"] {
   font-family: 'ByteBounce', monospace;
-  font-size: 10px;
+  font-size: 16px;
   background: hsl(var(--hue), 18%, 4%);
   color: var(--highlight);
   border: 2px solid var(--border);
@@ -78,7 +78,7 @@ input[type="text"] {
   transition: border-color 0.2s;
 }
 input[type="text"]:focus { border-color: var(--main); }
-label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: block; }
+label { font-size: 13px; color: var(--text-dim); margin-bottom: 4px; display: block; }
 
 /* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
 
@@ -94,7 +94,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 }
 
 #screen-onboarding .title {
-  font-size: 20px;
+  font-size: 32px;
   color: var(--highlight);
   text-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%);
   letter-spacing: 2px;
@@ -102,7 +102,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   transition: color 0.4s;
 }
 #screen-onboarding .subtitle {
-  font-size: 8px;
+  font-size: 13px;
   color: var(--text-dim);
   text-align: center;
 }
@@ -135,10 +135,10 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  font-size: 8px;
+  font-size: 13px;
   color: var(--text-dim);
 }
-.game-header .kubeling-name { color: var(--highlight); font-size: 10px; transition: color 0.4s; }
+.game-header .kubeling-name { color: var(--highlight); font-size: 16px; transition: color 0.4s; }
 
 /* Pod interior — background set via inline style once dev asset exists */
 .kubeling-viewport {
@@ -203,7 +203,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .zzz {
   position: absolute;
   top: 16px; right: 24px;
-  font-size: 14px;
+  font-size: 22px;
   color: var(--main);
   animation: floatup 2s ease-in-out infinite;
   display: none;
@@ -217,7 +217,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .confetti-burst {
   position: absolute;
   pointer-events: none;
-  font-size: 18px;
+  font-size: 28px;
   animation: burst 0.6s ease-out forwards;
   top: 50%; left: 50%;
 }
@@ -227,7 +227,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .stats { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 .stat-row  { display: flex; flex-direction: column; gap: 4px; }
 .stat-label {
-  font-size: 8px;
+  font-size: 13px;
   color: var(--text-dim);
   display: flex;
   justify-content: space-between;
@@ -254,21 +254,21 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 /* ── ══════════════ DEATH SCREEN ══════════════ ───────────────────────────── */
 #screen-death { text-align: center; gap: 18px; }
 #screen-death .game-over {
-  font-size: 22px;
+  font-size: 35px;
   color: var(--highlight);
   text-shadow: 3px 3px 0 hsl(var(--hue), 18%, 2%);
   animation: flicker 1s steps(1) infinite;
 }
 @keyframes flicker { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.55; } }
 
-#screen-death .death-name  { font-size: 12px; color: var(--highlight); }
-#screen-death .death-cause { font-size: 9px;  color: var(--text-dim); }
+#screen-death .death-name  { font-size: 19px; color: var(--highlight); }
+#screen-death .death-cause { font-size: 14px; color: var(--text-dim); }
 
 .death-stats { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .death-stat-row {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: 14px;
   padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
