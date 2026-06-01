@@ -98,7 +98,7 @@ async def websocket_endpoint(ws: WebSocket):
     active[name] = kubeling
     log.info("Spawned: %s (%s)", name, color)
 
-    await ws.send_json({"type": "spawned", **_state(kubeling)})
+    await ws.send_json({**_state(kubeling), "type": "spawned"})
 
     async def send_state(state: dict):
         try:
