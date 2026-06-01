@@ -45,7 +45,7 @@ body {
 /* ── Pixel box — flat, border only, pixel corners ─────────────────────────── */
 .pixel-box {
   background: var(--panel);
-  border: 2px solid var(--border);
+  border: 3px solid var(--border);
   clip-path: var(--px-clip);
   padding: 16px;
   width: 100%;
@@ -57,7 +57,7 @@ body {
   font-size: 10px;
   color: var(--bg);
   background: var(--main);
-  border: 2px solid var(--border);
+  border: 3px solid var(--border);
   clip-path: var(--px-clip);
   padding: 10px 20px;
   cursor: pointer;
@@ -76,7 +76,7 @@ input[type="text"] {
   font-size: 10px;
   background: hsl(var(--hue), 18%, 4%);
   color: var(--highlight);
-  border: 2px solid var(--border);
+  border: 3px solid var(--border);
   clip-path: var(--px-clip);
   padding: 8px;
   width: 100%;
@@ -110,7 +110,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .swatch {
   width: 32px; height: 32px;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   clip-path: var(--px-clip);
   cursor: pointer;
   transition: transform 0.1s;
@@ -133,7 +133,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   width: 100%; height: 200px;
   background: var(--panel);
   background-size: cover; background-position: center;
-  border: 2px solid var(--border);
+  border: 3px solid var(--border);
   clip-path: var(--px-clip);
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
@@ -145,7 +145,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   position: absolute; bottom: 10px; right: 10px;
   width: 48px; height: 48px;
   background: var(--panel);
-  border: 2px solid var(--dim);
+  border: 3px solid var(--dim);
   clip-path: var(--px-clip);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -166,7 +166,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 #kubeling-sprite img { width: 100%; height: 100%; image-rendering: pixelated; }
 .sprite-placeholder {
   width: 80px; height: 80px;
-  border: 2px solid var(--dim);
+  border: 3px solid var(--dim);
   clip-path: var(--px-clip);
   display: flex; align-items: center; justify-content: center;
   font-size: 32px;
@@ -213,7 +213,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .bar-track {
   width: 100%; height: 14px;
   background: hsl(var(--hue), 18%, 4%);
-  border: 2px solid var(--border);
+  border: 3px solid var(--border);
 }
 .bar-fill {
   height: 100%; background: var(--main);
@@ -244,6 +244,41 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   border-bottom: 1px solid var(--border);
 }
 .death-stat-row span { color: var(--main); }
+
+/* ── Social links (onboarding footer) ────────────────────────────────────── */
+.social-links {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+.social-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 7px;
+  transition: color 0.2s;
+}
+.social-link:hover { color: var(--highlight); }
+.social-logo {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--dim);
+  clip-path: var(--px-clip);
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+  image-rendering: pixelated;
+}
+.social-link:hover .social-logo { border-color: var(--highlight); }
+
+/* Once pixel art PNGs are dropped in, display them like:              */
+/* .social-logo img { width: 100%; height: 100%; image-rendering: pixelated; } */
 
 /* ── Star field ───────────────────────────────────────────────────────────── */
 .star {
