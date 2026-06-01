@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
+app.mount("/font",   StaticFiles(directory="font"),    name="font")
 
 
 @app.get("/")
