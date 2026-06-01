@@ -100,22 +100,20 @@ document.getElementById('form-onboard').addEventListener('submit', e => {
 });
 
 function runSpawnAnimation() {
-  if (!el.bgVideo) { connectWebSocket(); return; }
+  // Check if the video asset actually loaded (src resolved, no error, has duration)
+  const videoReady = el.bgVideo && !el.bgVideo.error && el.bgVideo.duration > 0;
 
-  // play() returns a Promise; if the file doesn't exist it rejects — handle both
-  el.bgVideo.play()
-    .then(() => {
-      el.bgVideo.onended = () => {
-        el.bgVideo.style.display = 'none';
-        connectWebSocket();
-      };
-      // Safety fallback in case 'ended' never fires
-      setTimeout(() => { if (!ws) connectWebSocket(); }, 12000);
-    })
-    .catch(() => {
-      // No video file yet — skip straight to game
+  if (videoReady) {
+    el.bgVideo.play();
+    el.bgVideo.onended = () => {
+      el.bgVideo.style.display = 'none';
       connectWebSocket();
-    });
+    };
+    setTimeout(() => { if (!ws) connectWebSocket(); }, 12000);
+  } else {
+    // No video asset yet — connect immediately
+    connectWebSocket();
+  }
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
