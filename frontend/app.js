@@ -283,7 +283,7 @@ function buildStars(count = 40) {
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
-buildStars();
+buildStars(120);
 buildSwatches();
 applyPalette(PALETTES[0].hue);
 showScreen('onboarding');
