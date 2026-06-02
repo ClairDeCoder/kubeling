@@ -32,6 +32,13 @@
       <div class="subtitle">a pod is waiting for you...</div>
     </div>
 
+    <div class="lore pixel-box">
+      <p>Kubelings, from the family <em>Podicus kuberneticus</em>, are born in pods on EKS, and they need you to adopt them!</p>
+      <p>Somewhere in the cloud, a pod is idle.</p>
+      <p>Spawn it. Name it. Keep it alive.<br>Feed it, cheer it up, let it sleep.<br>Let it die and your pod goes down.</p>
+      <p>How long can yours survive?<br>Every life tracked forever in Grafana.</p>
+    </div>
+
     <form id="form-onboard" class="pixel-box" style="display:flex;flex-direction:column;gap:16px;">
       <div class="form-row">
         <label for="input-name">KUBELING NAME</label>
@@ -68,11 +75,6 @@
       <span id="game-status" style="font-size:7px;">ALIVE</span>
     </div>
 
-    <!--
-      Pod interior background.
-      Set inline style background-image to assets/pod-interior.png once ready.
-      e.g. style="background-image: url('assets/pod-interior.png')"
-    -->
     <div class="kubeling-viewport" id="kubeling-viewport">
       <div id="kubeling-sprite" class="idle">
         <video id="sprite-main" muted playsinline loop style="display:none;"></video>
@@ -91,7 +93,7 @@
       <div class="viewport-hint">click your kubeling to cheer it up</div>
     </div>
 
-    <div class="stats pixel-box">
+    <div id="stat-bars" class="stats pixel-box">
       <div class="stat-row">
         <div class="stat-label"><span>FULLNESS</span><span><span id="val-fullness">100</span>/100</span></div>
         <div class="bar-track"><div id="bar-fullness" class="bar-fill" style="width:100%"></div></div>
@@ -106,24 +108,22 @@
       </div>
     </div>
 
+    <div id="death-info" class="pixel-box">
+      <div class="game-over">GAME OVER</div>
+      <div class="death-cause" id="death-cause">—</div>
+      <div class="death-stat-row">LIFESPAN <span id="death-lifespan">—</span></div>
+      <button class="btn" id="btn-play-again">TRY AGAIN</button>
+    </div>
+
     <button class="btn secondary small" onclick="window.location.href='/stats'">STATS WITH GRAFANA</button>
     <button class="btn secondary small" onclick="window.location.href='/arch'">AWS ARCH</button>
   </section>
 
-  <!-- ══ DEATH ══ -->
-  <section id="screen-death" class="screen">
-    <div class="game-over">GAME OVER</div>
-    <div class="death-name" id="death-name">—</div>
-    <div class="death-cause" id="death-cause">—</div>
-
-    <div class="death-stats pixel-box">
-      <div class="death-stat-row">LIFESPAN      <span id="death-lifespan">—</span></div>
-      <div class="death-stat-row">PEAK FULLNESS <span id="death-peak-fullness">—</span></div>
-      <div class="death-stat-row">PEAK MOOD     <span id="death-peak-mood">—</span></div>
-    </div>
-
-    <button class="btn" id="btn-play-again">TRY AGAIN</button>
-  </section>
+  <!-- ══ LAUNCH TEXT OVERLAY ══ -->
+  <div id="launch-text">
+    <div class="launch-line" id="launch-line-1">pod launched.</div>
+    <div class="launch-line" id="launch-line-2">your kubeling is waking up...</div>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>

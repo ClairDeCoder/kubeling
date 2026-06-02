@@ -19,8 +19,8 @@ const SPRITES = {
   eating:   '/static/assets/kubeling_cheer.webm',
   jiggle:   '/static/assets/kubeling_jiggle.webm',
   sleeping: '/static/assets/kubeling_sleep.webm',
-  alert:    null,   // TODO: arm-shake webm
-  dead:     null,   // TODO: fallen webm
+  alert:    '/static/assets/kubeling_alert.webm',
+  dead:     '/static/assets/kubeling_end.webm',
 };
 
 // ── State ──────────────────────────────────────────────────────────────────
@@ -37,10 +37,12 @@ let _revealed      = false; // guard — prevent double reveal
 const screens = {
   onboarding: document.getElementById('screen-onboarding'),
   game:       document.getElementById('screen-game'),
-  death:      document.getElementById('screen-death'),
 };
 const el = {
   bgVideo:         document.getElementById('bg-video'),
+  launchText:      document.getElementById('launch-text'),
+  launchLine1:     document.getElementById('launch-line-1'),
+  launchLine2:     document.getElementById('launch-line-2'),
   nameInput:       document.getElementById('input-name'),
   feedBtn:         document.getElementById('btn-feed'),
   sleepBtn:        document.getElementById('btn-sleep'),
@@ -53,17 +55,17 @@ const el = {
   spritePlaceholder: document.getElementById('sprite-placeholder'),
   zzz:             document.getElementById('zzz'),
   gameName:        document.getElementById('game-name'),
+  gameStatus:      document.getElementById('game-status'),
+  statBars:        document.getElementById('stat-bars'),
+  deathInfo:       document.getElementById('death-info'),
   fullnessBar:     document.getElementById('bar-fullness'),
   fullnessVal:     document.getElementById('val-fullness'),
   moodBar:         document.getElementById('bar-mood'),
   moodVal:         document.getElementById('val-mood'),
   tirednessBar:    document.getElementById('bar-tiredness'),
   tirednessVal:    document.getElementById('val-tiredness'),
-  deathName:       document.getElementById('death-name'),
   deathCause:      document.getElementById('death-cause'),
   deathLifespan:   document.getElementById('death-lifespan'),
-  deathPeakFull:   document.getElementById('death-peak-fullness'),
-  deathPeakMood:   document.getElementById('death-peak-mood'),
 };
 
 // ── Palette ────────────────────────────────────────────────────────────────
@@ -124,6 +126,7 @@ function runSpawnAnimation() {
   }, 500);
 
   connectWebSocket();
+  showLaunchText();
 
   const videoReady = el.bgVideo && !el.bgVideo.error && el.bgVideo.duration > 0;
   if (videoReady) {
@@ -150,9 +153,25 @@ function runSpawnAnimation() {
   }
 }
 
+function showLaunchText() {
+  el.launchText.style.display = 'flex';
+  el.launchLine1.style.opacity = '0';
+  el.launchLine2.style.opacity = '0';
+  setTimeout(() => el.launchLine1.style.opacity = '1', 600);
+  setTimeout(() => el.launchLine2.style.opacity = '1', 2000);
+}
+
+function hideLaunchText() {
+  el.launchText.style.opacity = '0';
+  el.launchText.addEventListener('transitionend', () => {
+    el.launchText.style.display = 'none';
+  }, { once: true });
+}
+
 function tryRevealGame() {
   if (!_revealReady || !_spawnedReady || _revealed) return;
   _revealed = true;
+  hideLaunchText();
   screens.game.classList.add('active', 'entering');
   setTimeout(() => screens.game.classList.remove('entering'), 1400);
 }
@@ -220,7 +239,7 @@ function updateStatBars() {
   el.tirednessVal.textContent = Math.round(t);
   el.viewport.classList.toggle('warning', f < 25 || m < 25);
   el.feedBtn.disabled  = kubeling.sleeping || !kubeling.alive;
-  el.sleepBtn.disabled = kubeling.sleeping || !kubeling.alive;
+  el.sleepBtn.disabled = kubeling.sleeping || !kubeling.alive || kubeling.tiredness <= 0;
   el.gameName.textContent = kubeling.name;
 }
 
@@ -228,7 +247,7 @@ function updateAnimation() {
   const s = kubeling;
   if (!s.alive)    { setAnim('dead');    return; }
   if (s.sleeping)  { setAnim('sleeping'); return; }
-  if (s.fullness < 25 || s.mood < 25) { setAnim('alert'); return; }
+  if (s.fullness < 25 || s.mood < 25 || s.tiredness > 75) { setAnim('alert'); return; }
   setAnim('idle');
 }
 
@@ -240,7 +259,7 @@ function setAnim(state) {
   const isVideo = src && (src.endsWith('.webm') || src.endsWith('.mp4'));
 
   if (isVideo) {
-    const loops = state === 'idle' || state === 'sleeping';
+    const loops = state === 'idle' || state === 'sleeping' || state === 'alert';
     el.spriteMain.loop = loops;
     // Don't restart a looping animation that's already playing this src
     const alreadyPlaying = el.spriteMain.dataset.src === src && !el.spriteMain.paused;
@@ -271,10 +290,30 @@ function setAnim(state) {
 }
 
 // ── Actions ────────────────────────────────────────────────────────────────
+function throwCookie() {
+  const vpRect     = el.viewport.getBoundingClientRect();
+  const btnRect    = el.feedBtn.getBoundingClientRect();
+  const spriteRect = el.sprite.getBoundingClientRect();
+  const startX = btnRect.left  - vpRect.left + btnRect.width  / 2;
+  const startY = btnRect.top   - vpRect.top  + btnRect.height / 2;
+  const endX   = spriteRect.left - vpRect.left + spriteRect.width  / 2;
+  const endY   = spriteRect.top  - vpRect.top  + spriteRect.height / 2;
+  const flyEl  = document.createElement('img');
+  flyEl.src = '/static/assets/cookie_icon.png';
+  flyEl.className = 'cookie-throw';
+  flyEl.style.left = (startX - 14) + 'px';
+  flyEl.style.top  = (startY - 14) + 'px';
+  flyEl.style.setProperty('--dx', (endX - startX) + 'px');
+  flyEl.style.setProperty('--dy', (endY - startY) + 'px');
+  el.viewport.appendChild(flyEl);
+  flyEl.addEventListener('animationend', () => flyEl.remove(), { once: true });
+}
+
 el.feedBtn.addEventListener('click', e => {
   e.stopPropagation();
   if (!ws || kubeling.sleeping || !kubeling.alive) return;
   ws.send(JSON.stringify({ action: 'feed' }));
+  throwCookie();
   flashAnim('eating');
 });
 
@@ -337,17 +376,16 @@ function playActionAnim(src) {
 function handleDeath(msg) {
   kubeling.alive = false;
   setAnim('dead');
-  setTimeout(() => showDeathScreen(msg.cause_of_death, msg.lifespan_seconds, msg.peak_fullness, msg.peak_mood), 1500);
+  setTimeout(() => showDeathScreen(msg.cause_of_death, msg.lifespan_seconds), 1500);
 }
 
-function showDeathScreen(cause, lifespan, peakFull, peakMood) {
+function showDeathScreen(cause, lifespan) {
   const causeMap = { hunger: 'DIED OF HUNGER', boredom: 'DIED OF BOREDOM', disconnected: 'POD TERMINATED', sleep_deprivation: 'WAS DEPRIVED OF SLEEP' };
-  el.deathName.textContent  = kubeling.name;
-  el.deathCause.textContent = causeMap[cause] ?? 'UNKNOWN';
-  el.deathLifespan.textContent  = lifespan  != null ? formatLifespan(lifespan) : '—';
-  el.deathPeakFull.textContent  = peakFull  != null ? peakFull  : '—';
-  el.deathPeakMood.textContent  = peakMood  != null ? peakMood  : '—';
-  showScreen('death');
+  el.deathCause.textContent    = kubeling.name + ' ' + (causeMap[cause] ?? 'UNKNOWN');
+  el.deathLifespan.textContent = lifespan != null ? formatLifespan(lifespan) : '—';
+  el.gameStatus.textContent    = 'DEAD';
+  el.statBars.style.display    = 'none';
+  el.deathInfo.style.display   = 'flex';
 }
 
 function formatLifespan(s) {
@@ -363,12 +401,17 @@ document.getElementById('btn-play-again').addEventListener('click', () => {
   _spawnedReady = false;
   _revealed     = false;
   el.nameInput.value = '';
+  el.deathInfo.style.display = 'none';
+  el.statBars.style.display  = '';
+  el.gameStatus.textContent  = 'ALIVE';
   if (el.bgVideo) {
     el.bgVideo.pause();
     el.bgVideo.currentTime = 0;
     el.bgVideo.style.transition = '';
     el.bgVideo.style.opacity = '0.6';
   }
+  el.launchText.style.display = 'none';
+  el.launchText.style.opacity = '0';
   showScreen('onboarding');
 });
 

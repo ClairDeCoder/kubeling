@@ -88,6 +88,42 @@ input[type="text"] {
 input[type="text"]:focus { border-color: var(--main); }
 label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: block; }
 
+/* ── Lore block ───────────────────────────────────────────────────────────── */
+.lore {
+  font-size: 7px;
+  color: var(--text-dim);
+  line-height: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+.lore p { margin: 0; }
+
+/* ── Launch text overlay ──────────────────────────────────────────────────── */
+#launch-text {
+  position: fixed;
+  bottom: 18%;
+  left: 0; right: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+  transition: opacity 0.8s;
+  pointer-events: none;
+  z-index: 10;
+}
+.launch-line {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--highlight);
+  text-shadow: 2px 2px 0 var(--ink);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+
 /* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
 #bg-video {
   position: fixed; inset: 0;
@@ -167,6 +203,17 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .feed-box:hover,  .sleep-box:hover  { filter: brightness(1.2); }
 .feed-box:active, .sleep-box:active { filter: brightness(0.8); }
 .feed-box:disabled, .sleep-box:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.cookie-throw {
+  position: absolute; pointer-events: none; z-index: 10;
+  width: 28px; height: 28px;
+  image-rendering: pixelated; filter: var(--sprite-filter);
+  animation: cookie-fly 0.4s ease-out forwards;
+}
+@keyframes cookie-fly {
+  0%   { transform: translate(0,0) rotate(0deg) scale(1.4); opacity: 1; }
+  100% { transform: translate(var(--dx),var(--dy)) rotate(320deg) scale(0.2); opacity: 0; }
+}
 
 /* ── Sprite ───────────────────────────────────────────────────────────────── */
 #kubeling-sprite {
@@ -304,22 +351,23 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   pointer-events: none;
 }
 
-/* ── ══════════════ DEATH SCREEN ══════════════ ───────────────────────────── */
-#screen-death { text-align: center; gap: 18px; }
-#screen-death .game-over {
+/* ── ══════════════ DEATH INFO ══════════════ ──────────────────────────────── */
+#death-info {
+  display: none;
+  flex-direction: column; align-items: center; gap: 12px; text-align: center;
+}
+#death-info .game-over {
   font-size: 22px; color: var(--highlight);
   text-shadow: 2px 2px 0 var(--ink);
   animation: flicker 1s steps(1) infinite;
 }
 @keyframes flicker { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.55; } }
 
-#screen-death .death-name  { font-size: 12px; color: var(--highlight); }
-#screen-death .death-cause { font-size: 9px;  color: var(--text-dim); }
+#death-info .death-cause { font-size: 9px; color: var(--text-dim); }
 
-.death-stats { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .death-stat-row {
   display: flex; justify-content: space-between;
-  font-size: 9px; padding: 4px 0;
+  font-size: 9px; padding: 4px 0; width: 100%;
   border-bottom: 1px solid var(--border);
 }
 .death-stat-row span { color: var(--main); }

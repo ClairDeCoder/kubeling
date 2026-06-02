@@ -133,7 +133,7 @@ async def websocket_endpoint(ws: WebSocket):
             elif action == "pet" and kubeling.alive and not kubeling.sleeping:
                 kubeling.pet(PET_MOOD_BOOST)
                 await send_state(_state(kubeling))
-            elif action == "sleep" and kubeling.alive and not kubeling.sleeping:
+            elif action == "sleep" and kubeling.alive and not kubeling.sleeping and kubeling.tiredness > 0:
                 kubeling.sleeping = True
                 await send_state(_state(kubeling))
     except WebSocketDisconnect:
