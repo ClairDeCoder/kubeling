@@ -15,18 +15,23 @@ const PALETTES = [
 ];
 
 const SPRITES = {
-  idle:     'sprites/idle.gif',
-  eating:   'sprites/eat.gif',
-  sleeping: 'sprites/sleep.gif',
-  confetti: 'sprites/confetti.gif',
-  crying:   'sprites/cry.gif',
+  idle:     '/static/assets/kubeling_idle.webm',
+  eating:   '/static/assets/kubeling_cheer.webm',
+  jiggle:   '/static/assets/kubeling_jiggle.webm',
+  sleeping: '/static/assets/kubeling_sleep.webm',
+  alert:    null,   // TODO: arm-shake webm
+  dead:     null,   // TODO: fallen webm
 };
 
 // ── State ──────────────────────────────────────────────────────────────────
 let ws = null;
 let selectedHue = PALETTES[0].hue;
-let kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, sleeping: false, alive: true };
-let animTimeout = null;
+let kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, tiredness: 0, sleeping: false, alive: true };
+let animTimeout  = null;
+let isFlashing   = false;
+let _revealReady   = false; // true when video enters last second (or no video)
+let _spawnedReady  = false; // true when server sends 'spawned'
+let _revealed      = false; // guard — prevent double reveal
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const screens = {
@@ -38,9 +43,13 @@ const el = {
   bgVideo:         document.getElementById('bg-video'),
   nameInput:       document.getElementById('input-name'),
   feedBtn:         document.getElementById('btn-feed'),
+  sleepBtn:        document.getElementById('btn-sleep'),
   viewport:        document.getElementById('kubeling-viewport'),
   sprite:          document.getElementById('kubeling-sprite'),
-  spriteImg:       document.getElementById('sprite-img'),
+  spriteMain:        document.getElementById('sprite-main'),
+  spriteAction:      document.getElementById('sprite-action'),
+  spriteVideo:       document.getElementById('sprite-video'),
+  spriteImg:         document.getElementById('sprite-img'),
   spritePlaceholder: document.getElementById('sprite-placeholder'),
   zzz:             document.getElementById('zzz'),
   gameName:        document.getElementById('game-name'),
@@ -48,6 +57,8 @@ const el = {
   fullnessVal:     document.getElementById('val-fullness'),
   moodBar:         document.getElementById('bar-mood'),
   moodVal:         document.getElementById('val-mood'),
+  tirednessBar:    document.getElementById('bar-tiredness'),
+  tirednessVal:    document.getElementById('val-tiredness'),
   deathName:       document.getElementById('death-name'),
   deathCause:      document.getElementById('death-cause'),
   deathLifespan:   document.getElementById('death-lifespan'),
@@ -100,20 +111,50 @@ document.getElementById('form-onboard').addEventListener('submit', e => {
 });
 
 function runSpawnAnimation() {
-  // Check if the video asset actually loaded (src resolved, no error, has duration)
-  const videoReady = el.bgVideo && !el.bgVideo.error && el.bgVideo.duration > 0;
+  _revealReady  = false;
+  _spawnedReady = false;
+  _revealed     = false;
 
+  // Fade out onboarding UI
+  screens.onboarding.style.transition = 'opacity 0.5s';
+  screens.onboarding.style.opacity = '0';
+  setTimeout(() => {
+    screens.onboarding.classList.remove('active');
+    screens.onboarding.style.cssText = '';
+  }, 500);
+
+  connectWebSocket();
+
+  const videoReady = el.bgVideo && !el.bgVideo.error && el.bgVideo.duration > 0;
   if (videoReady) {
     el.bgVideo.play();
-    el.bgVideo.onended = () => {
-      el.bgVideo.style.display = 'none';
-      connectWebSocket();
-    };
-    setTimeout(() => { if (!ws) connectWebSocket(); }, 12000);
+
+    // Trigger game reveal in the last second of the video
+    el.bgVideo.addEventListener('timeupdate', function onTick() {
+      if (el.bgVideo.duration && el.bgVideo.currentTime >= el.bgVideo.duration - 1) {
+        el.bgVideo.removeEventListener('timeupdate', onTick);
+        _revealReady = true;
+        tryRevealGame();
+      }
+    });
+
+    // Fade video out after it ends
+    el.bgVideo.addEventListener('ended', () => {
+      el.bgVideo.style.opacity = '0';
+    }, { once: true });
+
+    // Safety valve — reveal after 8s regardless
+    setTimeout(() => { _revealReady = true; tryRevealGame(); }, 8000);
   } else {
-    // No video asset yet — connect immediately
-    connectWebSocket();
+    setTimeout(() => { _revealReady = true; tryRevealGame(); }, 600);
   }
+}
+
+function tryRevealGame() {
+  if (!_revealReady || !_spawnedReady || _revealed) return;
+  _revealed = true;
+  screens.game.classList.add('active', 'entering');
+  setTimeout(() => screens.game.classList.remove('entering'), 1400);
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -129,7 +170,8 @@ function connectWebSocket() {
     switch (msg.type) {
       case 'spawned':
         applyState(msg);
-        showScreen('game');
+        _spawnedReady = true;
+        tryRevealGame();
         break;
       case 'state':
         applyState(msg);
@@ -159,12 +201,13 @@ function connectWebSocket() {
 function applyState(msg) {
   kubeling = { ...kubeling, ...msg };
   updateStatBars();
-  updateAnimation();
+  if (!isFlashing) updateAnimation();
 }
 
 function updateStatBars() {
   const f = kubeling.fullness;
   const m = kubeling.mood;
+  const t = kubeling.tiredness;
   // Fill is abs-positioned inside a bordered track; width relative to inner area
   el.fullnessBar.style.width = `calc(${f}% - ${(f / 100) * 8}px)`;
   el.fullnessBar.classList.toggle('low', f < 25);
@@ -172,16 +215,20 @@ function updateStatBars() {
   el.moodBar.style.width = `calc(${m}% - ${(m / 100) * 8}px)`;
   el.moodBar.classList.toggle('low', m < 25);
   el.moodVal.textContent = Math.round(m);
+  el.tirednessBar.style.width = `calc(${t}% - ${(t / 100) * 8}px)`;
+  el.tirednessBar.classList.toggle('high', t > 75);
+  el.tirednessVal.textContent = Math.round(t);
   el.viewport.classList.toggle('warning', f < 25 || m < 25);
-  el.feedBtn.disabled = kubeling.sleeping || !kubeling.alive;
+  el.feedBtn.disabled  = kubeling.sleeping || !kubeling.alive;
+  el.sleepBtn.disabled = kubeling.sleeping || !kubeling.alive;
   el.gameName.textContent = kubeling.name;
 }
 
 function updateAnimation() {
   const s = kubeling;
-  if (!s.alive)    { setAnim('dead');     return; }
+  if (!s.alive)    { setAnim('dead');    return; }
   if (s.sleeping)  { setAnim('sleeping'); return; }
-  if (s.fullness < 25 || s.mood < 25) { setAnim('crying'); return; }
+  if (s.fullness < 25 || s.mood < 25) { setAnim('alert'); return; }
   setAnim('idle');
 }
 
@@ -189,46 +236,101 @@ function setAnim(state) {
   el.sprite.className = state;
   el.zzz.style.display = state === 'sleeping' ? 'block' : 'none';
 
-  const src = SPRITES[state] ?? SPRITES.idle;
-  if (el.spriteImg.dataset.state !== state) {
-    el.spriteImg.src = src;
-    el.spriteImg.dataset.state = state;
-    // Show placeholder until real sprite loads
+  const src = SPRITES[state] ?? null;
+  const isVideo = src && (src.endsWith('.webm') || src.endsWith('.mp4'));
+
+  if (isVideo) {
+    const loops = state === 'idle' || state === 'sleeping';
+    el.spriteMain.loop = loops;
+    // Don't restart a looping animation that's already playing this src
+    const alreadyPlaying = el.spriteMain.dataset.src === src && !el.spriteMain.paused;
+    if (!alreadyPlaying) {
+      if (el.spriteMain.dataset.src !== src) {
+        el.spriteMain.src = src;
+        el.spriteMain.dataset.src = src;
+      }
+      el.spriteMain.currentTime = 0;
+      el.spriteMain.play().catch(() => {});
+    }
+    el.spriteMain.style.display = 'block';
+    el.spriteImg.style.display = 'none';
+    el.spritePlaceholder.style.display = 'none';
+    el.spriteMain.onended = (loops || state === 'dead') ? null : () => {
+      isFlashing = false;
+      updateAnimation();
+    };
+  } else {
+    // No webm yet — show placeholder with CSS animation
+    el.spriteMain.onended = null;
+    el.spriteMain.pause();
+    el.spriteMain.style.display = 'none';
+    el.spriteMain.dataset.src = '';
     el.spriteImg.style.display = 'none';
     el.spritePlaceholder.style.display = 'flex';
-    el.spriteImg.onload = () => {
-      el.spriteImg.style.display = 'block';
-      el.spritePlaceholder.style.display = 'none';
-    };
   }
 }
 
 // ── Actions ────────────────────────────────────────────────────────────────
-el.feedBtn.addEventListener('click', () => {
+el.feedBtn.addEventListener('click', e => {
+  e.stopPropagation();
   if (!ws || kubeling.sleeping || !kubeling.alive) return;
   ws.send(JSON.stringify({ action: 'feed' }));
   flashAnim('eating');
 });
 
+el.sleepBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (!ws || kubeling.sleeping || !kubeling.alive) return;
+  ws.send(JSON.stringify({ action: 'sleep' }));
+});
+
 el.viewport.addEventListener('click', () => {
   if (!ws || kubeling.sleeping || !kubeling.alive) return;
   ws.send(JSON.stringify({ action: 'pet' }));
-  flashAnim('confetti');
-  spawnConffetiBurst();
+  flashAnim('jiggle');
+  playConfettiOverlay();
 });
+
+function playConfettiOverlay() {
+  el.spriteVideo.src = '/static/assets/mood_sprite.webm';
+  el.spriteVideo.currentTime = 0;
+  el.spriteVideo.style.display = 'block';
+  el.spriteVideo.play().catch(() => {});
+  el.spriteVideo.onended = () => { el.spriteVideo.style.display = 'none'; };
+}
 
 function flashAnim(state) {
   clearTimeout(animTimeout);
-  setAnim(state);
-  animTimeout = setTimeout(updateAnimation, 1500);
+  isFlashing = true;
+  const src = SPRITES[state];
+  const isVideo = src && (src.endsWith('.webm') || src.endsWith('.mp4'));
+  if (isVideo) {
+    playActionAnim(src);
+  } else {
+    // No webm yet — fall back to CSS animation via setAnim, timeout returns to idle
+    if (src) setAnim(state);
+    animTimeout = setTimeout(() => { isFlashing = false; updateAnimation(); }, 1500);
+  }
 }
 
-function spawnConffetiBurst() {
-  const burst = document.createElement('div');
-  burst.className = 'confetti-burst';
-  burst.textContent = '✨';
-  el.viewport.appendChild(burst);
-  burst.addEventListener('animationend', () => burst.remove());
+// Plays a one-shot animation on the overlay element so sprite-main (idle) is never interrupted.
+function playActionAnim(src) {
+  if (el.spriteAction.getAttribute('src') !== src) {
+    el.spriteAction.src = src;
+  }
+  el.spriteMain.style.opacity = '0';
+  el.spriteAction.currentTime = 0;
+  el.spriteAction.style.display = 'block';
+  el.spriteAction.play().catch(() => {});
+  el.spriteAction.onended = () => {
+    // Fade sprite-main back in first; keep last frame of action visible during the crossfade
+    el.spriteMain.style.opacity = '1';
+    el.spriteMain.addEventListener('transitionend', () => {
+      el.spriteAction.style.display = 'none';
+      isFlashing = false;
+      updateAnimation();
+    }, { once: true });
+  };
 }
 
 // ── Death ──────────────────────────────────────────────────────────────────
@@ -239,7 +341,7 @@ function handleDeath(msg) {
 }
 
 function showDeathScreen(cause, lifespan, peakFull, peakMood) {
-  const causeMap = { hunger: 'DIED OF HUNGER', boredom: 'DIED OF BOREDOM', disconnected: 'POD TERMINATED' };
+  const causeMap = { hunger: 'DIED OF HUNGER', boredom: 'DIED OF BOREDOM', disconnected: 'POD TERMINATED', sleep_deprivation: 'WAS DEPRIVED OF SLEEP' };
   el.deathName.textContent  = kubeling.name;
   el.deathCause.textContent = causeMap[cause] ?? 'UNKNOWN';
   el.deathLifespan.textContent  = lifespan  != null ? formatLifespan(lifespan) : '—';
@@ -256,9 +358,17 @@ function formatLifespan(s) {
 // ── Play again ─────────────────────────────────────────────────────────────
 document.getElementById('btn-play-again').addEventListener('click', () => {
   if (ws) { ws.onclose = null; ws.close(); ws = null; }
-  kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, sleeping: false, alive: true };
+  kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, tiredness: 0, sleeping: false, alive: true };
+  _revealReady  = false;
+  _spawnedReady = false;
+  _revealed     = false;
   el.nameInput.value = '';
-  if (el.bgVideo) { el.bgVideo.currentTime = 0; el.bgVideo.style.display = 'block'; }
+  if (el.bgVideo) {
+    el.bgVideo.pause();
+    el.bgVideo.currentTime = 0;
+    el.bgVideo.style.transition = '';
+    el.bgVideo.style.opacity = '0.6';
+  }
   showScreen('onboarding');
 });
 
@@ -286,3 +396,18 @@ buildStars(120);
 buildSwatches();
 applyPalette(PALETTES[0].hue);
 showScreen('onboarding');
+
+// Preload sprites — action anims go into spriteAction so first frame is decoded in-element
+if (SPRITES.eating) {
+  el.spriteAction.src = SPRITES.eating;
+  el.spriteAction.load();
+}
+// Remaining videos preloaded via temp elements
+Object.values(SPRITES).filter(Boolean).forEach(src => {
+  if (src === SPRITES.eating) return; // already handled above
+  if (src.endsWith('.webm') || src.endsWith('.mp4')) {
+    const v = document.createElement('video');
+    v.src = src;
+    v.load();
+  }
+});
