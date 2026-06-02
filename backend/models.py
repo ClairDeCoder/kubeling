@@ -11,6 +11,7 @@ class Kubeling:
     mood: float = 100.0
     peak_fullness: float = 100.0
     peak_mood: float = 100.0
+    tiredness: float = 0.0
     sleeping: bool = False
     alive: bool = True
     cause_of_death: str | None = None
