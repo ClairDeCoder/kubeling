@@ -3,7 +3,7 @@
 /* ── Reset ────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Palette ──────────────────────────────────────────────────────────────── */
+/* ── Pixel corner shape (4px notch at each corner — no radius, no bevel) ── */
 :root {
   --hue: 215;
   --bg:        hsl(var(--hue), 18%,  6%);
@@ -16,14 +16,13 @@
   --text-dim:  hsl(var(--hue), 16%, 44%);
   --ink:       hsl(var(--hue), 18%, 2%);
 
-  /* 6px pixel corner notch — applied to outer AND inner shapes */
+  /* Reusable clip-path polygon — cuts 4px off each corner */
   --px-clip: polygon(
-    6px 0%, calc(100% - 6px) 0%,
-    100% 6px, 100% calc(100% - 6px),
-    calc(100% - 6px) 100%, 6px 100%,
-    0% calc(100% - 6px), 0% 6px
+    4px 0%, calc(100% - 4px) 0%,
+    100% 4px, 100% calc(100% - 4px),
+    calc(100% - 4px) 100%, 4px 100%,
+    0% calc(100% - 4px), 0% 4px
   );
-  --border-w: 4px;
 }
 
 body {
@@ -43,74 +42,41 @@ body {
 .screen { display: none; width: 100%; max-width: 480px; padding: 24px; }
 .screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
-/*
- * Pixel frame technique:
- *   - outer element: background = border color, clip-path = notched polygon
- *   - ::before     : inset by border-width, background = surface color,
- *                    same clip-path → both inner AND outer corners are notched
- *   - isolation: isolate + z-index: -1 on ::before keeps it behind text/children
- */
-
-/* ── Pixel box ─────────────────────────────────────────────────────────────── */
+/* ── Pixel box — flat, border only, pixel corners ─────────────────────────── */
 .pixel-box {
-  position: relative;
-  isolation: isolate;
-  background: var(--border);
-  clip-path: var(--px-clip);
-  padding: calc(16px + var(--border-w));
-  width: 100%;
-}
-.pixel-box::before {
-  content: '';
-  position: absolute;
-  inset: var(--border-w);
   background: var(--panel);
+  border: 2px solid var(--border);
   clip-path: var(--px-clip);
-  z-index: -1;
+  padding: 16px;
+  width: 100%;
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
 .btn {
-  position: relative;
-  isolation: isolate;
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
   color: var(--bg);
-  background: var(--border);
+  background: var(--main);
+  border: 2px solid var(--border);
   clip-path: var(--px-clip);
-  padding: calc(10px + var(--border-w)) calc(20px + var(--border-w));
+  padding: 10px 20px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: filter 0.15s;
-  border: none;
+  transition: background 0.2s, filter 0.1s;
 }
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: var(--border-w);
-  background: var(--main);
-  clip-path: var(--px-clip);
-  z-index: -1;
-  transition: background 0.2s;
-}
-.btn:hover  { filter: brightness(1.12); }
-.btn:active { filter: brightness(0.82); }
-.btn:disabled {
-  color: var(--text-dim); cursor: not-allowed; filter: none;
-}
-.btn:disabled::before { background: var(--dim); }
-.btn.secondary::before { background: var(--panel); }
-.btn.secondary { color: var(--text); }
-.btn.small { font-size: 8px; padding: calc(7px + var(--border-w)) calc(12px + var(--border-w)); }
+.btn:hover    { filter: brightness(1.12); }
+.btn:active   { filter: brightness(0.85); }
+.btn:disabled { background: var(--dim); color: var(--text-dim); cursor: not-allowed; filter: none; }
+.btn.secondary { background: var(--panel); color: var(--text); border-color: var(--dim); }
+.btn.small    { font-size: 8px; padding: 7px 12px; }
 
 /* ── Inputs ───────────────────────────────────────────────────────────────── */
-/* <input> doesn't support ::before, so use simple clip-path outer notch only */
 input[type="text"] {
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
   background: hsl(var(--hue), 18%, 4%);
   color: var(--highlight);
-  border: var(--border-w) solid var(--border);
+  border: 2px solid var(--border);
   clip-path: var(--px-clip);
   padding: 8px;
   width: 100%;
@@ -122,14 +88,20 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 
 /* ── ══════════════ ONBOARDING ══════════════ ─────────────────────────────── */
 #bg-video {
-  position: fixed; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; z-index: -1; opacity: 0.35;
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: -1; opacity: 0.35;
 }
+
 .onboard-header { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #screen-onboarding .title {
-  font-size: 20px; color: var(--highlight);
+  font-size: 20px;
+  color: var(--highlight);
   text-shadow: 2px 2px 0 var(--ink);
-  letter-spacing: 2px; text-align: center; transition: color 0.4s;
+  letter-spacing: 2px;
+  text-align: center;
+  transition: color 0.4s;
 }
 #screen-onboarding .subtitle { font-size: 8px; color: var(--text-dim); text-align: center; }
 .form-row { display: flex; flex-direction: column; gap: 6px; width: 100%; }
@@ -137,26 +109,19 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 /* ── Color swatches ───────────────────────────────────────────────────────── */
 .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .swatch {
-  position: relative; isolation: isolate;
   width: 32px; height: 32px;
-  background: var(--border);   /* frame color — inner bg set via JS */
+  border: 2px solid transparent;
   clip-path: var(--px-clip);
-  cursor: pointer; border: none;
-  transition: transform 0.1s; image-rendering: pixelated;
-}
-.swatch::before {
-  content: '';
-  position: absolute; inset: var(--border-w);
-  /* background overridden by JS on the outer element; swatch colour shows through */
-  background: inherit;
-  clip-path: var(--px-clip);
-  z-index: -1;
+  cursor: pointer;
+  transition: transform 0.1s;
+  image-rendering: pixelated;
 }
 .swatch:hover    { transform: scale(1.15); }
-.swatch.selected { background: var(--highlight); }
+.swatch.selected { border-color: var(--highlight); transform: scale(1.1); }
 
 /* ── ══════════════ GAME SCREEN ══════════════ ────────────────────────────── */
 #screen-game { gap: 14px; }
+
 .game-header {
   display: flex; justify-content: space-between; align-items: center;
   width: 100%; font-size: 8px; color: var(--text-dim);
@@ -165,40 +130,27 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 
 /* Kubeling viewport */
 .kubeling-viewport {
-  position: relative; isolation: isolate;
   width: 100%; height: 200px;
-  background: var(--border);
+  background: var(--panel);
   background-size: cover; background-position: center;
+  border: 2px solid var(--border);
   clip-path: var(--px-clip);
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; transition: background 0.3s;
-}
-.kubeling-viewport::before {
-  content: '';
-  position: absolute; inset: var(--border-w);
-  background: var(--panel);
-  clip-path: var(--px-clip);
-  z-index: -1;
+  position: relative; overflow: hidden;
+  transition: border-color 0.3s;
 }
 
-/* Feed button — cookie in a box, bottom-right of viewport */
+/* ── Feed button — cookie in a box, overlaid bottom-right of viewport ──────── */
 .feed-box {
   position: absolute; bottom: 10px; right: 10px;
-  isolation: isolate;
   width: 48px; height: 48px;
-  background: var(--dim);
+  background: var(--panel);
+  border: 2px solid var(--dim);
   clip-path: var(--px-clip);
-  cursor: pointer; border: none;
+  cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-size: 22px; line-height: 1;
   transition: filter 0.1s;
-}
-.feed-box::before {
-  content: '';
-  position: absolute; inset: var(--border-w);
-  background: var(--panel);
-  clip-path: var(--px-clip);
-  z-index: -1;
 }
 .feed-box:hover   { filter: brightness(1.2); }
 .feed-box:active  { filter: brightness(0.8); }
@@ -213,19 +165,13 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 }
 #kubeling-sprite img { width: 100%; height: 100%; image-rendering: pixelated; }
 .sprite-placeholder {
-  position: relative; isolation: isolate;
   width: 80px; height: 80px;
-  background: var(--dim);
+  border: 2px solid var(--dim);
   clip-path: var(--px-clip);
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; transition: background 0.4s;
-}
-.sprite-placeholder::before {
-  content: '';
-  position: absolute; inset: var(--border-w);
+  font-size: 32px;
   background: var(--panel);
-  clip-path: var(--px-clip);
-  z-index: -1;
+  transition: background 0.4s;
 }
 
 /* Sprite state animations */
@@ -245,12 +191,13 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .zzz {
   position: absolute; top: 16px; right: 24px;
   font-size: 14px; color: var(--main);
-  animation: floatup 2s ease-in-out infinite; display: none;
+  animation: floatup 2s ease-in-out infinite;
+  display: none; transition: color 0.4s;
 }
 @keyframes floatup { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0; } }
 
 .kubeling-viewport.warning { animation: warnflash 1s ease-in-out infinite; }
-@keyframes warnflash { 0%,100% { background: var(--border); } 50% { background: hsl(var(--hue), 45%, 30%); } }
+@keyframes warnflash { 0%,100% { border-color: var(--border); } 50% { border-color: hsl(var(--hue), 50%, 50%); } }
 
 .confetti-burst {
   position: absolute; pointer-events: none; font-size: 18px;
@@ -264,54 +211,19 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
 .stat-label { font-size: 8px; color: var(--text-dim); display: flex; justify-content: space-between; }
 .stat-label span { color: var(--text); }
 .bar-track {
-  position: relative; isolation: isolate;
-  width: 100%; height: 18px;
-  background: var(--border);
-  clip-path: var(--px-clip);
-}
-.bar-track::before {
-  content: '';
-  position: absolute; inset: var(--border-w);
+  width: 100%; height: 14px;
   background: hsl(var(--hue), 18%, 4%);
-  clip-path: var(--px-clip);
-  z-index: -1;
+  border: 2px solid var(--border);
 }
 .bar-fill {
-  position: absolute;
-  top: var(--border-w); bottom: var(--border-w); left: var(--border-w);
-  background: var(--main);
+  height: 100%; background: var(--main);
   transition: width 0.4s steps(8), background 0.3s;
-  /* width set by JS — represents percentage of (100% - 2*border-w) */
 }
 .bar-fill.low { background: hsl(var(--hue), 45%, 45%); }
 
 /* ── Actions / nav ────────────────────────────────────────────────────────── */
 .actions     { display: flex; gap: 12px; width: 100%; justify-content: center; }
 .nav-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-
-/* ── Social links ─────────────────────────────────────────────────────────── */
-.social-links { display: flex; gap: 20px; justify-content: center; align-items: center; }
-.social-link {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  color: var(--text-dim); text-decoration: none; font-size: 7px; transition: color 0.2s;
-}
-.social-link:hover { color: var(--highlight); }
-.social-logo {
-  position: relative; isolation: isolate;
-  width: 28px; height: 28px;
-  background: var(--dim);
-  clip-path: var(--px-clip);
-  display: flex; align-items: center; justify-content: center;
-  image-rendering: pixelated; transition: background 0.2s;
-}
-.social-logo::before {
-  content: '';
-  position: absolute; inset: var(--border-w);
-  background: var(--panel);
-  clip-path: var(--px-clip);
-  z-index: -1;
-}
-.social-link:hover .social-logo { background: var(--main); }
 
 /* ── ══════════════ DEATH SCREEN ══════════════ ───────────────────────────── */
 #screen-death { text-align: center; gap: 18px; }
@@ -321,6 +233,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   animation: flicker 1s steps(1) infinite;
 }
 @keyframes flicker { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.55; } }
+
 #screen-death .death-name  { font-size: 12px; color: var(--highlight); }
 #screen-death .death-cause { font-size: 9px;  color: var(--text-dim); }
 
