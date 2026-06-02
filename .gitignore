@@ -29,3 +29,7 @@ Thumbs.db
 art/
 *.blend
 *.blend1
+
+# Local dev artifacts
+server.log
+test_local.py
