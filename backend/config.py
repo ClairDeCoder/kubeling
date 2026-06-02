@@ -23,3 +23,11 @@ AWS_REGION               = os.getenv("AWS_REGION", "us-east-1")
 
 APP_HOST                 = os.getenv("APP_HOST", "0.0.0.0")
 APP_PORT                 = int(os.getenv("APP_PORT", 8000))
+
+# ── Spawner / pod architecture ─────────────────────────────────────────────────
+# True  → run kubeling in-process (local dev, no K8s needed)
+# False → create a real K8s pod per connection (prod)
+LOCAL_DEV     = os.getenv("LOCAL_DEV", "true").lower() == "true"
+POD_IMAGE     = os.getenv("POD_IMAGE", "kubeling:local")   # overridden in prod with ECR URL
+POD_PORT      = int(os.getenv("POD_PORT", 3001))           # port the kubeling pod listens on
+K8S_NAMESPACE = os.getenv("K8S_NAMESPACE", "default")

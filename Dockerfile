@@ -13,4 +13,6 @@ ENV APP_PORT=3000
 
 EXPOSE 3000
 
-CMD ["python", "-m", "backend.main"]
+# Spawner by default. Kubeling pods override this in their K8s pod spec:
+#   command: ["python", "-m", "backend.pod.main"]
+CMD ["python", "-m", "backend.spawner.main"]
