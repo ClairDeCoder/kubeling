@@ -24,3 +24,8 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Blender source art — not for version control
+art/
+*.blend
+*.blend1
