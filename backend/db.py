@@ -22,6 +22,4 @@ def save_death(kubeling: Kubeling):
         "alive":            False,
         "lifespan_seconds": kubeling.lifespan_seconds(),
         "cause_of_death":   kubeling.cause_of_death,
-        "peak_mood":        int(kubeling.peak_mood),
-        "peak_fullness":    int(kubeling.peak_fullness),
     })

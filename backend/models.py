@@ -9,8 +9,6 @@ class Kubeling:
     born_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     fullness: float = 100.0
     mood: float = 100.0
-    peak_fullness: float = 100.0
-    peak_mood: float = 100.0
     tiredness: float = 0.0
     sleeping: bool = False
     alive: bool = True
@@ -19,9 +17,6 @@ class Kubeling:
     def tick(self, fullness_decay: float, mood_decay: float, multiplier: float = 1.0):
         self.fullness = max(0.0, self.fullness - fullness_decay * multiplier)
         self.mood     = max(0.0, self.mood     - mood_decay     * multiplier)
-        self.peak_fullness = max(self.peak_fullness, self.fullness)
-        self.peak_mood     = max(self.peak_mood,     self.mood)
-
     def feed(self, amount: float):
         self.fullness = min(100.0, self.fullness + amount)
 

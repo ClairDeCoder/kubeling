@@ -128,8 +128,6 @@ async def _handle_local(ws: WebSocket, name: str, color: str) -> None:
             "type":             "death",
             "cause_of_death":   k.cause_of_death,
             "lifespan_seconds": k.lifespan_seconds(),
-            "peak_fullness":    int(k.peak_fullness),
-            "peak_mood":        int(k.peak_mood),
         })
         try: save_death(k)
         except Exception as e: log.warning("DynamoDB: %s", e)

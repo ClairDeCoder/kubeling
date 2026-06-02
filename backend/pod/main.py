@@ -45,8 +45,6 @@ async def ws_endpoint(ws: WebSocket):
             "type":             "death",
             "cause_of_death":   k.cause_of_death,
             "lifespan_seconds": k.lifespan_seconds(),
-            "peak_fullness":    int(k.peak_fullness),
-            "peak_mood":        int(k.peak_mood),
         })
         try:
             save_death(k)
