@@ -10,11 +10,9 @@ FEED_FULLNESS_BOOST      = float(os.getenv("FEED_FULLNESS_BOOST", 30))
 PET_MOOD_BOOST           = float(os.getenv("PET_MOOD_BOOST", 30))
 STAT_START_VALUE         = float(os.getenv("STAT_START_VALUE", 100))
 
-SLEEP_INTERVAL_MIN       = float(os.getenv("SLEEP_INTERVAL_MIN_SECONDS", 300))
-SLEEP_INTERVAL_MAX       = float(os.getenv("SLEEP_INTERVAL_MAX_SECONDS", 600))
-SLEEP_DURATION_MIN       = float(os.getenv("SLEEP_DURATION_MIN_SECONDS", 30))
-SLEEP_DURATION_MAX       = float(os.getenv("SLEEP_DURATION_MAX_SECONDS", 90))
 SLEEP_DECAY_MULTIPLIER   = float(os.getenv("SLEEP_DECAY_MULTIPLIER", 0.25))
+TIREDNESS_INCREASE_AMOUNT = float(os.getenv("TIREDNESS_INCREASE_AMOUNT", 2))   # per tick while awake
+TIREDNESS_REFILL_AMOUNT   = float(os.getenv("TIREDNESS_REFILL_AMOUNT",   8))   # per tick while sleeping
 
 MAX_CONCURRENT_KUBELINGS = int(os.getenv("MAX_CONCURRENT_KUBELINGS", 100))
 HEARTBEAT_INTERVAL       = float(os.getenv("HEARTBEAT_INTERVAL_SECONDS", 15))
