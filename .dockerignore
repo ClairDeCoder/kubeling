@@ -1,0 +1,16 @@
+.venv/
+.git/
+.env
+.env.local
+
+art/
+*.blend
+*.blend1
+
+__pycache__/
+*.py[cod]
+
+server.log
+test_local.py
+
+*.md
