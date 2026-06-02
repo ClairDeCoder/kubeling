@@ -33,3 +33,8 @@ art/
 # Local dev artifacts
 server.log
 test_local.py
+
+# OpenTofu
+.terraform/
+*.tfstate
+*.tfstate.backup
