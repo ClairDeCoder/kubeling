@@ -17,12 +17,12 @@
   -->
   <video
     id="bg-video"
-    poster="assets/pod-launch-poster.jpg"
     preload="auto"
     muted
     playsinline
   >
-    <source src="assets/pod-launch.mp4" type="video/mp4" />
+    <source src="/static/assets/pod-launch.webm" type="video/webm" />
+    <source src="/static/assets/pod-launch.mp4" type="video/mp4" />
   </video>
 
   <!-- ══ ONBOARDING ══ -->
@@ -32,7 +32,7 @@
       <div class="subtitle">a pod is waiting for you...</div>
     </div>
 
-    <form id="form-onboard" class="pixel-box" style="display:flex;flex-direction:column;gap:28px;">
+    <form id="form-onboard" class="pixel-box" style="display:flex;flex-direction:column;gap:16px;">
       <div class="form-row">
         <label for="input-name">KUBELING NAME</label>
         <input id="input-name" type="text" maxlength="32" placeholder="enter a name..." autocomplete="off" required />
@@ -42,19 +42,19 @@
         <!-- Swatches built dynamically by app.js -->
         <div id="swatch-row" class="swatch-row"></div>
       </div>
-      <button type="submit" class="btn">SPIN UP POD</button>
+      <button type="submit" class="btn">LAUNCH A POD</button>
     </form>
 
     <div class="social-links">
       <a href="https://github.com/ClairDeCoder/" target="_blank" rel="noopener" class="social-link">
         <div class="social-logo" id="logo-github">
-          <!-- drop pixel art github.png here -->
+          <img src="/static/assets/github_logo_bw.png" alt="GitHub" />
         </div>
         <span>GITHUB</span>
       </a>
       <a href="https://www.linkedin.com/in/brandon-sweat/" target="_blank" rel="noopener" class="social-link">
         <div class="social-logo" id="logo-linkedin">
-          <!-- drop pixel art linkedin.png here -->
+          <img src="/static/assets/linkedin_logo_bw.png" alt="LinkedIn" />
         </div>
         <span>LINKEDIN</span>
       </a>
@@ -75,41 +75,39 @@
     -->
     <div class="kubeling-viewport" id="kubeling-viewport">
       <div id="kubeling-sprite" class="idle">
-        <!--
-          Sprite images live in frontend/sprites/.
-          app.js swaps src based on state (idle/eat/sleep/confetti/cry).
-          All sprites should be grayscale — CSS filter applies the chosen hue tint.
-        -->
+        <video id="sprite-main" muted playsinline loop style="display:none;"></video>
+        <video id="sprite-action" muted playsinline style="display:none;"></video>
         <img id="sprite-img" src="" alt="" style="display:none;" />
         <div id="sprite-placeholder" class="sprite-placeholder">🐣</div>
       </div>
+      <video id="sprite-video" muted playsinline style="display:none;"></video>
       <div class="zzz" id="zzz">z z z</div>
-      <!-- Feed button: cookie in a box, overlaid on viewport -->
-      <button class="feed-box" id="btn-feed" title="Feed your Kubeling">🍪</button>
+      <button class="feed-box" id="btn-feed" title="Feed your Kubeling">
+        <img src="/static/assets/cookie_icon.png" alt="Feed" />
+      </button>
+      <button class="sleep-box" id="btn-sleep" title="Put your Kubeling to sleep">
+        <img src="/static/assets/moon_icon.png" alt="Sleep" />
+      </button>
+      <div class="viewport-hint">click your kubeling to cheer it up</div>
     </div>
 
     <div class="stats pixel-box">
       <div class="stat-row">
-        <div class="stat-label">FULLNESS <span id="val-fullness">100</span>/100</div>
+        <div class="stat-label"><span>FULLNESS</span><span><span id="val-fullness">100</span>/100</span></div>
         <div class="bar-track"><div id="bar-fullness" class="bar-fill" style="width:100%"></div></div>
       </div>
       <div class="stat-row">
-        <div class="stat-label">MOOD <span id="val-mood">100</span>/100</div>
+        <div class="stat-label"><span>MOOD</span><span><span id="val-mood">100</span>/100</span></div>
         <div class="bar-track"><div id="bar-mood" class="bar-fill" style="width:100%"></div></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label"><span>TIREDNESS</span><span><span id="val-tiredness">0</span>/100</span></div>
+        <div class="bar-track"><div id="bar-tiredness" class="bar-fill tiredness" style="width:0%"></div></div>
       </div>
     </div>
 
-    <div class="actions">
-      <button class="btn secondary small" onclick="window.location.href='/stats'">VIEW STATS</button>
-    </div>
-
-    <div class="nav-buttons">
-      <button class="btn secondary small" onclick="window.location.href='/arch'">ARCHITECTURE</button>
-    </div>
-
-    <div style="font-size:7px;color:var(--text-dim);text-align:center;">
-      click your kubeling to cheer it up
-    </div>
+    <button class="btn secondary small" onclick="window.location.href='/stats'">STATS WITH GRAFANA</button>
+    <button class="btn secondary small" onclick="window.location.href='/arch'">AWS ARCH</button>
   </section>
 
   <!-- ══ DEATH ══ -->
