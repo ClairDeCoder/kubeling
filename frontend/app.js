@@ -29,6 +29,7 @@ let selectedHue = PALETTES[0].hue;
 let kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, tiredness: 0, sleeping: false, alive: true };
 let animTimeout  = null;
 let isFlashing   = false;
+let podName      = null;
 let _revealReady   = false; // true when video enters last second (or no video)
 let _spawnedReady  = false; // true when server sends 'spawned'
 let _revealed      = false; // guard — prevent double reveal
@@ -41,8 +42,13 @@ const screens = {
 const el = {
   bgVideo:         document.getElementById('bg-video'),
   launchText:      document.getElementById('launch-text'),
-  launchLine1:     document.getElementById('launch-line-1'),
-  launchLine2:     document.getElementById('launch-line-2'),
+  launchPodLine:   document.getElementById('launch-pod-line'),
+  podBadge:        document.getElementById('pod-badge'),
+  podBadgeName:    document.getElementById('pod-badge-name'),
+  podReceipt:      document.getElementById('pod-receipt'),
+  receiptLine1:    document.getElementById('receipt-line-1'),
+  receiptLine2:    document.getElementById('receipt-line-2'),
+  receiptLine3:    document.getElementById('receipt-line-3'),
   nameInput:       document.getElementById('input-name'),
   feedBtn:         document.getElementById('btn-feed'),
   sleepBtn:        document.getElementById('btn-sleep'),
@@ -156,10 +162,8 @@ function runSpawnAnimation() {
 function showLaunchText() {
   el.launchText.style.display = 'flex';
   el.launchText.style.opacity = '1';
-  el.launchLine1.style.opacity = '0';
-  el.launchLine2.style.opacity = '0';
-  setTimeout(() => el.launchLine1.style.opacity = '1', 300);
-  setTimeout(() => el.launchLine2.style.opacity = '1', 700);
+  el.launchPodLine.style.opacity = '0';
+  // Text content set when pod_status: ContainerCreating arrives
 }
 
 function hideLaunchText() {
@@ -173,8 +177,10 @@ function tryRevealGame() {
   if (!_revealReady || !_spawnedReady || _revealed) return;
   _revealed = true;
   hideLaunchText();
-  screens.game.classList.add('active', 'entering');
-  setTimeout(() => screens.game.classList.remove('entering'), 1400);
+  setTimeout(() => {
+    screens.game.classList.add('active', 'entering');
+    setTimeout(() => screens.game.classList.remove('entering'), 1400);
+  }, 100);
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -199,6 +205,9 @@ function connectWebSocket() {
       case 'death':
         handleDeath(msg);
         break;
+      case 'pod_status':
+        handlePodStatus(msg);
+        break;
       case 'ping':
         ws.send(JSON.stringify({ type: 'pong' }));
         break;
@@ -222,6 +231,10 @@ function applyState(msg) {
   kubeling = { ...kubeling, ...msg };
   updateStatBars();
   if (!isFlashing) updateAnimation();
+  if (msg.type === 'spawned' && podName) {
+    el.podBadgeName.textContent = podName;
+    el.podBadge.style.display = 'block';
+  }
 }
 
 function updateStatBars() {
@@ -373,6 +386,27 @@ function playActionAnim(src) {
   };
 }
 
+// ── Pod status ─────────────────────────────────────────────────────────────
+function handlePodStatus(msg) {
+  const { pod_name, phase } = msg;
+  if (phase === 'ContainerCreating') {
+    podName = pod_name;
+    el.launchPodLine.textContent = `${pod_name}   0/1   ContainerCreating`;
+    el.launchPodLine.style.opacity = '1';
+  } else if (phase === 'Terminating') {
+    el.podBadge.style.display = 'none';
+    el.podReceipt.style.display = 'flex';
+    el.receiptLine1.textContent = `${pod_name}   Terminating`;
+    el.receiptLine1.style.opacity = '1';
+  } else if (phase === 'Completed') {
+    el.receiptLine2.textContent = `${pod_name}   Completed`;
+    el.receiptLine2.style.opacity = '1';
+  } else if (phase === 'offline') {
+    el.receiptLine3.textContent = 'pod offline';
+    el.receiptLine3.style.opacity = '1';
+  }
+}
+
 // ── Death ──────────────────────────────────────────────────────────────────
 function handleDeath(msg) {
   kubeling.alive = false;
@@ -398,6 +432,7 @@ function formatLifespan(s) {
 document.getElementById('btn-play-again').addEventListener('click', () => {
   if (ws) { ws.onclose = null; ws.close(); ws = null; }
   kubeling = { name: '', color: 'slate', fullness: 100, mood: 100, tiredness: 0, sleeping: false, alive: true };
+  podName = null;
   _revealReady  = false;
   _spawnedReady = false;
   _revealed     = false;
@@ -405,6 +440,13 @@ document.getElementById('btn-play-again').addEventListener('click', () => {
   el.deathInfo.style.display = 'none';
   el.statBars.style.display  = '';
   el.gameStatus.textContent  = 'ALIVE';
+  el.podBadge.style.display  = 'none';
+  el.podReceipt.style.display = 'none';
+  el.receiptLine1.style.opacity = '0';
+  el.receiptLine2.style.opacity = '0';
+  el.receiptLine3.style.opacity = '0';
+  el.launchPodLine.textContent  = '';
+  el.launchPodLine.style.opacity = '0';
   if (el.bgVideo) {
     el.bgVideo.pause();
     el.bgVideo.currentTime = 0;

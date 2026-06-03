@@ -90,6 +90,12 @@
       <button class="sleep-box" id="btn-sleep" title="Put your Kubeling to sleep">
         <img src="/static/assets/moon_icon.png" alt="Sleep" />
       </button>
+      <div id="pod-badge" style="display:none;"><span id="pod-badge-name"></span>&nbsp;&nbsp;Running</div>
+      <div id="pod-receipt" style="display:none;">
+        <div class="receipt-line" id="receipt-line-1"></div>
+        <div class="receipt-line" id="receipt-line-2"></div>
+        <div class="receipt-line" id="receipt-line-3"></div>
+      </div>
       <div class="viewport-hint">click your kubeling to cheer it up</div>
     </div>
 
@@ -115,14 +121,13 @@
       <button class="btn" id="btn-play-again">TRY AGAIN</button>
     </div>
 
-    <button class="btn secondary small" onclick="window.location.href='/stats'">STATS WITH GRAFANA</button>
+    <button class="btn secondary small" onclick="window.open('https://merrystudio57.grafana.net/public-dashboards/3358708fa85b4664b6f587bb2672a508','_blank')">STATS WITH GRAFANA</button>
     <button class="btn secondary small" onclick="window.location.href='/arch'">AWS ARCH</button>
   </section>
 
   <!-- ══ LAUNCH TEXT OVERLAY ══ -->
   <div id="launch-text">
-    <div class="launch-line" id="launch-line-1">your pod is launching...</div>
-    <div class="launch-line" id="launch-line-2">thanks for adopting a kubeling!</div>
+    <div class="launch-line" id="launch-pod-line"></div>
   </div>
 
   <script src="/static/app.js"></script>

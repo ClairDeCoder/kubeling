@@ -195,6 +195,7 @@ async def _handle_pod(ws: WebSocket, name: str, color: str) -> None:
 
     await loop.run_in_executor(None, partial(_create_pod_sync, pod_name, pod_id, name, color))
     log.info("Created pod %s for %s", pod_name, name)
+    await ws.send_json({"type": "pod_status", "pod_name": pod_name, "phase": "ContainerCreating"})
 
     try:
         pod_ip = await _wait_for_pod_ready(pod_name)
@@ -222,16 +223,48 @@ async def _handle_pod(ws: WebSocket, name: str, color: str) -> None:
         except Exception:
             pass
 
+    browser_task = asyncio.create_task(browser_to_pod())
+    pod_task     = asyncio.create_task(pod_to_browser())
+
+    done = set()
     try:
-        await asyncio.gather(browser_to_pod(), pod_to_browser())
+        done, pending = await asyncio.wait(
+            {browser_task, pod_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for t in pending:
+            t.cancel()
+        await asyncio.gather(browser_task, pod_task, return_exceptions=True)
     finally:
         try:
             await pod_ws.close()
         except Exception:
             pass
-        await asyncio.sleep(3)
+
+    if pod_task in done:
+        # Pod died naturally — send termination receipt then wait for browser to leave
+        log.info("Pod %s died naturally, sending termination receipt", pod_name)
+        try:
+            await ws.send_json({"type": "pod_status", "pod_name": pod_name, "phase": "Terminating"})
+            await asyncio.sleep(0.6)
+            await ws.send_json({"type": "pod_status", "pod_name": pod_name, "phase": "Completed"})
+            await asyncio.sleep(0.6)
+            await ws.send_json({"type": "pod_status", "pod_name": pod_name, "phase": "offline"})
+        except Exception:
+            pass
         await loop.run_in_executor(None, partial(_delete_pod_sync, pod_name))
         log.info("Cleaned up pod %s", pod_name)
+        # Keep browser WS alive for the death screen; browser closes on TRY AGAIN
+        try:
+            async for _ in ws.iter_text():
+                pass
+        except Exception:
+            pass
+    else:
+        # Browser disconnected first
+        await asyncio.sleep(1)
+        await loop.run_in_executor(None, partial(_delete_pod_sync, pod_name))
+        log.info("Cleaned up pod %s (browser disconnected)", pod_name)
 
 
 async def _heartbeat_local(ws: WebSocket, kubeling: Kubeling) -> None:
