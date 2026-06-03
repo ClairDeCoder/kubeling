@@ -57,7 +57,7 @@ def _create_pod_sync(pod_name: str, pod_id: str, name: str, color: str) -> None:
             },
         ),
         spec=k8s_client.V1PodSpec(
-            service_account_name="kubeling-pod-sa",
+            service_account_name="kubeling-pod",
             containers=[k8s_client.V1Container(
                 name="kubeling",
                 image=POD_IMAGE,
