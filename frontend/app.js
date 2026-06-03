@@ -1,4 +1,4 @@
-const WS_URL = `ws://${window.location.host}/ws`;
+const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
 // ── Palettes ───────────────────────────────────────────────────────────────
 // 8 muted hues. JS sets --hue and --sprite-filter on :root.
