@@ -19,7 +19,7 @@ def save_death(kubeling: Kubeling):
         "color":            kubeling.color,
         "born_at":          kubeling.born_at.isoformat(),
         "died_at":          died_at,
-        "alive":            False,
+        "alive":            "false",
         "lifespan_seconds": kubeling.lifespan_seconds(),
         "cause_of_death":   kubeling.cause_of_death,
     })
