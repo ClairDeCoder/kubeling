@@ -155,10 +155,11 @@ function runSpawnAnimation() {
 
 function showLaunchText() {
   el.launchText.style.display = 'flex';
+  el.launchText.style.opacity = '1';
   el.launchLine1.style.opacity = '0';
   el.launchLine2.style.opacity = '0';
-  setTimeout(() => el.launchLine1.style.opacity = '1', 600);
-  setTimeout(() => el.launchLine2.style.opacity = '1', 2000);
+  setTimeout(() => el.launchLine1.style.opacity = '1', 300);
+  setTimeout(() => el.launchLine2.style.opacity = '1', 700);
 }
 
 function hideLaunchText() {
