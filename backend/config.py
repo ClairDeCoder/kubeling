@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DECAY_INTERVAL_SECONDS   = float(os.getenv("DECAY_INTERVAL_SECONDS", 60))
+DECAY_INTERVAL_SECONDS   = float(os.getenv("DECAY_INTERVAL_SECONDS", 5))
 FULLNESS_DECAY_AMOUNT    = float(os.getenv("FULLNESS_DECAY_AMOUNT", 3))
 MOOD_DECAY_AMOUNT        = float(os.getenv("MOOD_DECAY_AMOUNT", 3))
 FEED_FULLNESS_BOOST      = float(os.getenv("FEED_FULLNESS_BOOST", 30))
