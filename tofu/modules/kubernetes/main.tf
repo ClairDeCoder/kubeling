@@ -1,4 +1,4 @@
-resource "kubernetes_service_account" "kubeling_pod" {
+resource "kubernetes_service_account_v1" "kubeling_pod" {
   metadata {
     name      = "kubeling-pod"
     namespace = "default"
@@ -8,14 +8,14 @@ resource "kubernetes_service_account" "kubeling_pod" {
   }
 }
 
-resource "kubernetes_service_account" "spawner" {
+resource "kubernetes_service_account_v1" "spawner" {
   metadata {
     name      = "kubeling-spawner"
     namespace = "default"
   }
 }
 
-resource "kubernetes_cluster_role" "spawner" {
+resource "kubernetes_cluster_role_v1" "spawner" {
   metadata {
     name = "kubeling-spawner"
   }
@@ -27,7 +27,7 @@ resource "kubernetes_cluster_role" "spawner" {
   }
 }
 
-resource "kubernetes_cluster_role_binding" "spawner" {
+resource "kubernetes_cluster_role_binding_v1" "spawner" {
   metadata {
     name = "kubeling-spawner"
   }
@@ -35,17 +35,17 @@ resource "kubernetes_cluster_role_binding" "spawner" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.spawner.metadata[0].name
+    name      = kubernetes_cluster_role_v1.spawner.metadata[0].name
   }
 
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.spawner.metadata[0].name
+    name      = kubernetes_service_account_v1.spawner.metadata[0].name
     namespace = "default"
   }
 }
 
-resource "kubernetes_deployment" "spawner" {
+resource "kubernetes_deployment_v1" "spawner" {
   metadata {
     name      = "kubeling-spawner"
     namespace = "default"
@@ -68,7 +68,7 @@ resource "kubernetes_deployment" "spawner" {
       }
 
       spec {
-        service_account_name = kubernetes_service_account.spawner.metadata[0].name
+        service_account_name = kubernetes_service_account_v1.spawner.metadata[0].name
 
         container {
           name  = "spawner"
@@ -132,7 +132,7 @@ resource "kubernetes_deployment" "spawner" {
   }
 }
 
-resource "kubernetes_service" "spawner" {
+resource "kubernetes_service_v1" "spawner" {
   metadata {
     name      = "kubeling-spawner"
     namespace = "default"
@@ -162,7 +162,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "spawner" {
     scale_target_ref {
       api_version = "apps/v1"
       kind        = "Deployment"
-      name        = kubernetes_deployment.spawner.metadata[0].name
+      name        = kubernetes_deployment_v1.spawner.metadata[0].name
     }
 
     min_replicas = 1
@@ -208,7 +208,7 @@ resource "kubernetes_ingress_v1" "spawner" {
 
           backend {
             service {
-              name = kubernetes_service.spawner.metadata[0].name
+              name = kubernetes_service_v1.spawner.metadata[0].name
               port {
                 number = 80
               }
