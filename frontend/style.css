@@ -37,7 +37,8 @@ body {
   justify-content: center;
   padding-top: 48px;
   transition: background 0.4s, color 0.4s;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   zoom: 1.2;
 }
 
@@ -254,6 +255,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   width: 200px; height: 200px;
   image-rendering: pixelated; position: relative;
   filter: var(--sprite-filter, grayscale(1) brightness(1.4));
+  mix-blend-mode: screen;
   transition: filter 0.4s;
 }
 #kubeling-sprite img { width: 100%; height: 100%; image-rendering: pixelated; }
@@ -284,6 +286,7 @@ label { font-size: 8px; color: var(--text-dim); margin-bottom: 4px; display: blo
   pointer-events: none;
   z-index: 2;
   filter: var(--sprite-filter);
+  mix-blend-mode: screen;
 }
 
 .sprite-placeholder {
