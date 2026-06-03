@@ -24,6 +24,14 @@ provider "helm" {
   }
 }
 
+module "prometheus" {
+  source                   = "./modules/prometheus"
+  grafana_remote_write_url = "https://prometheus-prod-66-prod-us-east-3.grafana.net/api/prom/push"
+  grafana_username         = "3278700"
+
+  depends_on = [module.eks, module.kubernetes]
+}
+
 module "vpc" {
   source       = "./modules/vpc"
   aws_region   = var.aws_region

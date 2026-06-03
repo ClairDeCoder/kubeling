@@ -12,6 +12,9 @@ resource "kubernetes_service_account_v1" "spawner" {
   metadata {
     name      = "kubeling-spawner"
     namespace = "default"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = var.irsa_role_arn
+    }
   }
 }
 

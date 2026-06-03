@@ -30,7 +30,10 @@ resource "aws_iam_role" "kubeling_pod" {
       Action    = "sts:AssumeRoleWithWebIdentity"
       Condition = {
         StringEquals = {
-          "${var.oidc_provider_url}:sub" = "system:serviceaccount:default:kubeling-pod"
+          "${var.oidc_provider_url}:sub" = [
+            "system:serviceaccount:default:kubeling-pod",
+            "system:serviceaccount:default:kubeling-spawner",
+          ]
           "${var.oidc_provider_url}:aud" = "sts.amazonaws.com"
         }
       }
