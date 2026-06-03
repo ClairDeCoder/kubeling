@@ -299,6 +299,11 @@ async def index():
     return FileResponse("frontend/index.html")
 
 
+@app.get("/arch")
+async def arch():
+    return FileResponse("frontend/arch.html")
+
+
 @app.get("/api/stats")
 async def stats():
     if LOCAL_DEV:

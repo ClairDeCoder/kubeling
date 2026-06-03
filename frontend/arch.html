@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kubeling — AWS Architecture</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>
+    const h = localStorage.getItem('kubeling-hue');
+    if (h) document.documentElement.style.setProperty('--hue', h);
+  </script>
+  <style>
+    body {
+      overflow-y: auto;
+      align-items: flex-start;
+      padding: 48px 16px 64px;
+    }
+    .arch-wrap {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .arch-title {
+      font-size: 13px;
+      color: var(--highlight);
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .arch-wip {
+      font-size: 8px;
+      color: var(--main);
+      text-align: center;
+      border: 2px dashed var(--dim);
+      clip-path: var(--px-clip);
+      padding: 10px;
+      letter-spacing: 1px;
+    }
+    .arch-section-label {
+      font-size: 7px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .component-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .component-item {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      clip-path: var(--px-clip);
+      padding: 10px;
+    }
+    .component-name {
+      font-size: 7px;
+      color: var(--main);
+      margin-bottom: 5px;
+    }
+    .component-desc {
+      font-size: 6px;
+      color: var(--text-dim);
+      line-height: 2;
+    }
+    .back-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="arch-wrap">
+
+    <div class="arch-title">AWS ARCHITECTURE</div>
+
+    <div class="arch-wip">[ DIAGRAM INCOMING ]</div>
+
+    <div class="pixel-box">
+      <div class="arch-section-label">Stack</div>
+      <div class="component-grid">
+
+        <div class="component-item">
+          <div class="component-name">EKS</div>
+          <div class="component-desc">Kubernetes cluster<br/>t3.small node group<br/>HPA autoscaler</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">ALB + WAF</div>
+          <div class="component-desc">Public ingress<br/>ACM TLS cert<br/>Geo-block non US/CA</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">DynamoDB</div>
+          <div class="component-desc">Single-table design<br/>GSI: alive + born_at<br/>Lifespan + cause of death</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">IAM / IRSA</div>
+          <div class="component-desc">Pod-level AWS auth<br/>No hardcoded creds<br/>Scoped to DynamoDB</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">ECR</div>
+          <div class="component-desc">Container registry<br/>Shared image<br/>Spawner + pod roles</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">Route53</div>
+          <div class="component-desc">kubeling.brandonsweat.net<br/>ALB alias record</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">Prometheus</div>
+          <div class="component-desc">In-cluster scraper<br/>remote_write →<br/>Grafana Cloud</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">Grafana Cloud</div>
+          <div class="component-desc">Live dashboard<br/>Kubelings alive<br/>Deaths by cause</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">GitHub Actions</div>
+          <div class="component-desc">CI/CD on merge<br/>Build → ECR push<br/>Rolling EKS deploy</div>
+        </div>
+
+        <div class="component-item">
+          <div class="component-name">OpenTofu</div>
+          <div class="component-desc">All infra as code<br/>VPC, EKS, DynamoDB,<br/>ALB, Route53, IAM</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="back-row">
+      <button class="btn secondary small" onclick="window.location.href='/'">← BACK TO KUBELING</button>
+    </div>
+
+  </div>
+</body>
+</html>

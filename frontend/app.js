@@ -79,6 +79,7 @@ function applyPalette(hue) {
   selectedHue = hue;
   const root = document.documentElement;
   root.style.setProperty('--hue', hue);
+  localStorage.setItem('kubeling-hue', hue);
   // sepia() outputs ~hue 35; rotate to target hue
   const rotate = hue - 35;
   root.style.setProperty('--sprite-filter', `sepia(1) saturate(1.4) hue-rotate(${rotate}deg) brightness(0.95)`);
