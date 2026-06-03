@@ -119,7 +119,7 @@ resource "kubernetes_deployment_v1" "spawner" {
 
           liveness_probe {
             http_get {
-              path = "/stats"
+              path = "/api/stats"
               port = 3000
             }
             initial_delay_seconds = 10
@@ -128,7 +128,7 @@ resource "kubernetes_deployment_v1" "spawner" {
 
           readiness_probe {
             http_get {
-              path = "/stats"
+              path = "/api/stats"
               port = 3000
             }
             initial_delay_seconds = 5

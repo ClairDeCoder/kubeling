@@ -266,7 +266,7 @@ async def index():
     return FileResponse("frontend/index.html")
 
 
-@app.get("/stats")
+@app.get("/api/stats")
 async def stats():
     if LOCAL_DEV:
         return {
