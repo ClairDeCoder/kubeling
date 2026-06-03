@@ -7,8 +7,9 @@ from functools import partial
 
 import websockets
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 from backend.config import (
     APP_HOST,
@@ -25,7 +26,7 @@ from backend.config import (
 )
 from backend.kubeling import run_lifecycle, _state
 from backend.models import Kubeling
-from backend.db import save_death
+from backend.db import save_death, get_stats
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -41,6 +42,28 @@ if not LOCAL_DEV:
 
 # ── Local dev state (no K8s) ───────────────────────────────────────────────────
 _active: dict[str, Kubeling] = {}
+
+# ── Prometheus metrics ─────────────────────────────────────────────────────────
+_gauge_alive    = Gauge("kubelings_alive",               "Currently active Kubelings")
+_gauge_dead     = Gauge("kubelings_total_dead",          "Total Kubelings that have died")
+_gauge_avg_life = Gauge("kubeling_avg_lifespan_seconds", "Average Kubeling lifespan in seconds")
+_gauge_max_life = Gauge("kubeling_max_lifespan_seconds", "Longest Kubeling lifespan in seconds")
+_gauge_cause    = Gauge("kubeling_deaths_by_cause",      "Deaths by cause", ["cause"])
+
+
+async def _refresh_dynamo_metrics() -> None:
+    while True:
+        try:
+            loop = asyncio.get_event_loop()
+            stats = await loop.run_in_executor(None, get_stats)
+            _gauge_dead.set(stats["total_dead"])
+            _gauge_avg_life.set(stats["avg_lifespan"])
+            _gauge_max_life.set(stats["max_lifespan"])
+            for cause, count in stats["deaths_by_cause"].items():
+                _gauge_cause.labels(cause=cause).set(count)
+        except Exception as e:
+            log.warning("Metrics refresh failed: %s", e)
+        await asyncio.sleep(60)
 
 
 # ── K8s helpers ───────────────────────────────────────────────────────────────
@@ -61,7 +84,7 @@ def _create_pod_sync(pod_name: str, pod_id: str, name: str, color: str) -> None:
             containers=[k8s_client.V1Container(
                 name="kubeling",
                 image=POD_IMAGE,
-                command=["python", "-m", "backend.pod.main"],
+                command=["uvicorn", "backend.pod.main:app", "--host", "0.0.0.0", "--port", str(POD_PORT)],
                 ports=[k8s_client.V1ContainerPort(container_port=POD_PORT)],
                 env=[
                     k8s_client.V1EnvVar(name="KUBELING_NAME",  value=name),
@@ -223,7 +246,9 @@ async def _heartbeat_local(ws: WebSocket, kubeling: Kubeling) -> None:
 # ── App ────────────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    metrics_task = asyncio.create_task(_refresh_dynamo_metrics())
     yield
+    metrics_task.cancel()
     if LOCAL_DEV:
         for k in list(_active.values()):
             if k.alive:
@@ -270,14 +295,16 @@ async def stats():
 @app.get("/metrics")
 async def metrics():
     if LOCAL_DEV:
-        return {"kubelings_alive": len(_active)}
-    loop = asyncio.get_event_loop()
-    pods = await loop.run_in_executor(
-        None,
-        partial(v1.list_namespaced_pod, namespace=K8S_NAMESPACE,
-                label_selector="app=kubeling-pod", field_selector="status.phase=Running"),
-    )
-    return {"kubelings_alive": len(pods.items)}
+        _gauge_alive.set(len(_active))
+    else:
+        loop = asyncio.get_event_loop()
+        pods = await loop.run_in_executor(
+            None,
+            partial(v1.list_namespaced_pod, namespace=K8S_NAMESPACE,
+                    label_selector="app=kubeling-pod", field_selector="status.phase=Running"),
+        )
+        _gauge_alive.set(len(pods.items))
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.websocket("/ws")
@@ -321,4 +348,4 @@ async def websocket_endpoint(ws: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.spawner.main:app", host=APP_HOST, port=APP_PORT, reload=True)
+    uvicorn.run(app, host=APP_HOST, port=APP_PORT)

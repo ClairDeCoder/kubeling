@@ -15,4 +15,4 @@ EXPOSE 3000
 
 # Spawner by default. Kubeling pods override this in their K8s pod spec:
 #   command: ["python", "-m", "backend.pod.main"]
-CMD ["python", "-m", "backend.spawner.main"]
+CMD ["uvicorn", "backend.spawner.main:app", "--host", "0.0.0.0", "--port", "3000"]
