@@ -50,6 +50,10 @@ async def ws_endpoint(ws: WebSocket):
             save_death(k)
         except Exception as e:
             log.warning("DynamoDB write failed: %s", e)
+        try:
+            await ws.close()
+        except Exception:
+            pass
 
     await ws.send_json({**_state(kubeling), "type": "spawned"})
 
