@@ -8,7 +8,7 @@ The project was built to explore dynamic pod creation, infrastructure automation
 
 **Live Demo:** https://kubeling.brandonsweat.net
 
-**Demo Video:** [![Watch the video](thumbnail.png)](https://youtu.be/q7t0ZjuPHHA)
+**Demo Video:** [![Watch the video](https://youtu.be/q7t0ZjuPHHA)](https://youtu.be/q7t0ZjuPHHA)
 
 ---
 
