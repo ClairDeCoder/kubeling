@@ -206,6 +206,7 @@ async def _handle_pod(ws: WebSocket, name: str, color: str) -> None:
             await pod_ws.close()
         except Exception:
             pass
+        await asyncio.sleep(3)
         await loop.run_in_executor(None, partial(_delete_pod_sync, pod_name))
         log.info("Cleaned up pod %s", pod_name)
 
