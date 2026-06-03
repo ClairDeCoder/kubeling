@@ -98,6 +98,11 @@ resource "kubernetes_deployment_v1" "spawner" {
             value = "false"
           }
 
+          env {
+            name  = "POD_IMAGE"
+            value = "${var.ecr_repository_url}:${var.image_tag}"
+          }
+
           resources {
             requests = {
               cpu    = "100m"
